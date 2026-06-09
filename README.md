@@ -320,6 +320,7 @@ mkdir ~/metaphlan_taxonomic_profiling
 cd ~/metaphlan_taxonomic_profiling
 
 conda activate tax_profiling
+```
 
 ## **Step n.2: download metagenomic samples**
 
