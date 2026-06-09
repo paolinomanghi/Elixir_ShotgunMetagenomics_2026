@@ -82,27 +82,35 @@ conda config --add channels conda-forge
 ```
 conda create -n preprocessing -c bioconda -c conda-forge trimmomatic bowtie2 samtools
 ```
+
 2) create the environment for the Assembly (the genome reconstruction):
 ```
 conda create -n assembly -c bioconda -c conda-forge megahit bowtie2 metabat2 checkm2 samtools
 ```
+
 3) Create one environment for MetaPhlAn and for Kraken/Bracken (taxonomic profiling)
 ```
 conda create -n tax_profiling -c bioconda -c conda-forge metaphlan kraken bracken
 
 mkdir -p ~/database/
 cd ~/database/
-metaphlan --install --db_dir metaphlan_databases --idx mpa_vJan21_CHOCOPhlAnSGB_202103
 
+metaphlan --install --db_dir metaphlan_databases --idx mpa_vJan21_CHOCOPhlAnSGB_202103
 wget https://genome-idx.s3.amazonaws.com/kraken/k2_standard_08gb_20250402.tar.gz
 mkdir -p kraken_databases && tar -xvzf k2_standard_08gb_20250402.tar.gz -C kraken_databases
 
 cd ../src
 git clone https://github.com/jenniferlu717/KrakenTools.git
 chmod +x KrakenTools/*
+```
+
+Create one environment for running jupiter notebooks with analyses in R:
+```
+4) conda create -n r_notebooks -c bioconda -c conda-forge r-base=4.3 jupyter r-irkernel r-microeco r-tidyverse
 
 ```
-4) Create one environment for HUMAnN4 (functional profiling of communities)
+
+5) Create one environment for HUMAnN4 (functional profiling of communities)
 ```
 conda create -n humann4 -c bioconda python=3.12
 conda activate humann4
@@ -111,7 +119,8 @@ conda install humann=4.0.0a1 -c biobakery -c bioconda -c conda-forge
 conda install metaphlan=4.1 -c bioconda
 #### metaphlan --install --index mpa_vOct22_CHOCOPhlAnSGB_202403
 ```
-5) Create one environment for Genomic Annotations
+
+6) Create one environment for Genomic Annotations
 ```
 conda create -n genome_annotation -c bioconda bakta
 ```
@@ -561,19 +570,21 @@ First, set the correct conda environment:
 ```
 conda deactivate 
 conda activate r_notebook
+
+cd ~
 ```
 
 Next, open jupiter notebook:
 ```
-jupyter notebook /data/Jupyter/Alpha_diversity.ipynb --allow-root --no-browser --port=8888 --ip=127.0.0.1
+jupyter notebook src/Notebooks/Alpha_diversity.ipynb --allow-root --no-browser --port=8888 --ip=127.0.0.1
 ```
 
-Next, open up a new terminal and type:
+Next, open up a new TERMINAL and Type:
 ```
-ssh -N -L 8888:localhost:8888 <YOURNAME>@212.189.202.106
+ssh -N -L 8888:127.0.0.1:8888 manghip@10.10.82.12
 ```
 
-Note it holds but doesn't do anything. It means that a tunnel is open
+Note it holds but doesn't do anything. It means that a tunnel is open.
 Then, copy the URL that the server prompt is suggesting you into YOUR BROWSER:
 
 Es.:
