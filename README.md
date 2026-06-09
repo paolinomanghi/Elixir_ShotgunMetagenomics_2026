@@ -16,39 +16,108 @@
 ssh YOUR-NAME@212.189.202.106
 ```
 
+Press Enter
 Check our yotu current location
 ```
 pwd
 ```
-did it return /data/YOURNAME/?
+
+Did it return /data/YOURNAME/?
+
+This is a public server, it means that several people can work in this environment without step on each other toes:
+multiple programs must be installed at the same time, and it must be possible to install new ones without intefering with the existing program.
+Personnel, for most, do not have root privilegies, so being able to install software packages without compiling is also a requirement.
+
+There are several ways to achieve this situation, the most widely adopted are Docker, NextFlow, and Anaconda. These are different instruments, but they achieve 
+similar goals: having an infrastructure that coordinates multiple softwares with multiple version able so that an entire lab can work simultanously.
+
+We'll use Anaconda, as it is the one requiring less specific knowledge.
+In order to activate the right Anaconda settig, we must just set a series of environmental variables. Type:
+```
+source /mnt/nfs2/manghip/projects/elixir_2026/src/elixir_conda/.conda
+```
+
+Now, see the (base) string in the bottom-left corner of the screen ?
+Type:
+
+```
+which conda
+which python
+```
+
+Did it return
+/mnt/nfs2/manghip/projects/elixir_2026/src/elixir_conda/bin/python 
+/mnt/nfs2/manghip/projects/elixir_2026/src/elixir_conda/bin/conda ?
 
 #### Step n.1: check if your environment is present
 ```
 which python
 conda info --envs
 ```
-you should see:
+You should see:
 
 ```
 # conda environments:
 #
-base                  *  /data/anaconda3
-ai-microbiome            /data/anaconda3/envs/ai-microbiome
-bowtie2                  /data/anaconda3/envs/bowtie2
-checkm2                  /data/anaconda3/envs/checkm2
-humann4                  /data/anaconda3/envs/humann4
-kraken_+_bracken         /data/anaconda3/envs/kraken_+_bracken
-megahit                  /data/anaconda3/envs/megahit
-metabat2                 /data/anaconda3/envs/metabat2
-mpa                      /data/anaconda3/envs/mpa
-samtools                 /data/anaconda3/envs/samtools
-school_notebooks         /data/anaconda3/envs/school_notebooks
-trimmomatic              /data/anaconda3/envs/trimmomatic
-workflows                /data/anaconda3/envs/workflows
+base                 * /mnt/nfs2/manghip/projects/elixir_2026/src/elixir_conda
+assembly               /mnt/nfs2/manghip/projects/elixir_2026/src/elixir_conda/envs/assembly
+genome_annotation      /mnt/nfs2/manghip/projects/elixir_2026/src/elixir_conda/envs/genome_annotation
+humann4                /mnt/nfs2/manghip/projects/elixir_2026/src/elixir_conda/envs/humann4
+preprocessing          /mnt/nfs2/manghip/projects/elixir_2026/src/elixir_conda/envs/preprocessing
+tax_profiling          /mnt/nfs2/manghip/projects/elixir_2026/src/elixir_conda/envs/tax_profiling
 ```
-did it work ?
 
-#### Step n.2: raw data pre-processing on fastq example files "seq_1.fastq.gz" and "seq_2.fastq.gz" from https://github.com/biobakery/biobakery/wiki/kneaddata
+Did it work ?
+In case it doesn't work is very easy to install all Conda environments.
+0) Explain how to search for correct program versions:
+```
+conda config --add channels defaults
+conda config --add channels bioconda
+conda config --add channels conda-forge
+```
+ 
+1) create the environment for Data Preprocessing:
+```
+conda create -n preprocessing -c bioconda -c conda-forge trimmomatic bowtie2 samtools
+```
+2) create the environment for the Assembly (the genome reconstruction):
+```
+conda create -n assembly -c bioconda -c conda-forge megahit bowtie2 metabat2 checkm2 samtools
+```
+3) Create one environment for MetaPhlAn and for Kraken/Bracken (taxonomic profiling)
+```
+conda create -n tax_profiling -c bioconda -c conda-forge metaphlan kraken bracken
+```
+4) Create one environment for HUMAnN4 (functional profiling of communities)
+```
+conda create -n humann4 -c bioconda python=3.12
+conda activate humann4
+conda config --add channels biobakery
+conda install humann=4.0.0a1 -c biobakery -c bioconda -c conda-forge
+conda install metaphlan=4.1 -c bioconda
+#### metaphlan --install --index mpa_vOct22_CHOCOPhlAnSGB_202403
+```
+5) Create one environment for Genomic Annotations
+```
+conda create -n genome_annotation -c bioconda bakta
+```
+
+To understand how this works, Type:
+```
+conda activate tax_profiling
+```
+See the (tax_profiling) string in the bottom-left corner?
+
+Now type:
+```
+which metaphlan; which kraken; which bracken
+conda deactivate
+which metaphlan; which kraken; which bracken
+```
+
+As you can see, the programs inside each environment are protected, meaning that they are visible only in that environment to not interefe with other installations.
+
+#### Step n.1: raw data pre-processing on fastq example files "seq_1.fastq.gz" and "seq_2.fastq.gz" from https://github.com/biobakery/biobakery/wiki/kneaddata
 
 ```
 ## conda create -n <trimmomatic> -c bioconda trimmomatic ## DON'T DO IT. WE DID ALREADY
@@ -63,7 +132,7 @@ unzip input.zip
 cd input
 ```
 
-#### Step n.3: Define variable "s" with the sampleID and run TRIMMOMATIC
+#### Step n.2: Define variable "s" with the sampleID and run TRIMMOMATIC
 ```
 s="seq"
 
