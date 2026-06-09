@@ -3,14 +3,13 @@
 - [Hands-on n.1 - Preprocessing of standard metagenomic data](#user-content-hands-on-n1---preprocessing-of-standard-metagenomic-data)
 - [Hands-on n.2 - Taxonomic profiling using marker genes with MetaPhlAn 4](#user-content-hands-on-n2---taxonomic-profiling-using-marker-genes-with-metaphlan-4)
 - [Hands-on n.3 - Taxonomic profiling using k-mers: Kraken + Bracken taxonomic profiling](#user-content-hands-on-n3---taxonomic-profiling-using-k-mers-kraken--bracken-taxonomic-profiling)
-- [Hands-On 4: functional profiling at the community level using HUMAnN 4](#user-content-hands-on-4-functional-profiling-at-the-community-level-using-humann-4)
+- [Hands-on n.4 - Functional profiling at the community level using HUMAnN 4](#user-content-hands-on-4-functional-profiling-at-the-community-level-using-humann-4)
 - [Hands-on n.5 - Metagenome assembly and binning](#user-content-hands-on-n5---metagenome-assembly-and-binning)
-  * [Approach 1: following a protocol step-by-step](#user-content-approach-1-following-a-protocol-step-by-step)
-  * [Approach 2: trying Nextflow pipelines](#user-content-approach-2-trying-nextflow-pipelines)
+  * [Approach 1: Following a protocol step-by-step](#user-content-approach-1-following-a-protocol-step-by-step)
+  * [Approach 2: Trying Nextflow pipelines](#user-content-approach-2-trying-nextflow-pipelines)
 - [BONUS: Hands-on n.6 - Taxonomic profiling beyond the level of species using StrainPhlAn](#user-content-bonus-hands-on-n6---taxonomic-profiling-beyond-the-level-of-species-using-strainphlan)
 
 # Hands-on n.1 - Preprocessing of standard metagenomic data
-
 #### Step n.0: log in into your machine and explore the configuration
 ```
 ssh YOUR-NAME@212.189.202.106
@@ -45,11 +44,14 @@ which conda
 which python
 ```
 
-Did it return
+Did it return:
+```
 /mnt/nfs2/manghip/projects/elixir_2026/src/elixir_conda/bin/python 
-/mnt/nfs2/manghip/projects/elixir_2026/src/elixir_conda/bin/conda ?
+/mnt/nfs2/manghip/projects/elixir_2026/src/elixir_conda/bin/conda
+```
+?
 
-#### Step n.1: check if your environment is present
+#### Step n.1: check if your environments are all set up and ready
 ```
 which python
 conda info --envs
@@ -118,31 +120,67 @@ which metaphlan; which kraken; which bracken
 As you can see, the programs inside each environment are protected, meaning that they are visible only in that environment to not interefe with other installations.
 
 #### Step n.1: raw data pre-processing on fastq example files "seq_1.fastq.gz" and "seq_2.fastq.gz" from https://github.com/biobakery/biobakery/wiki/kneaddata
+In this step, we just download a toy fastq sample. Normally, this step may take a few weeks!
 
 ```
-## conda create -n <trimmomatic> -c bioconda trimmomatic ## DON'T DO IT. WE DID ALREADY
-## conda create -n <bowtie2> -c bioconda bowtie2 ## DON'T DO IT. WE DID ALREADY
-## conda create -n <samtools> -c bioconda samtools ## DON'T DO IT. WE DID ALREADY
-
-mkdir 1_pre-processing
-cd 1_pre-processing
+mkdir preprocessing
+cd preprocessing
 
 wget https://github.com/biobakery/kneaddata/files/4703820/input.zip
 unzip input.zip
+
+rm input.zip
 cd input
 ```
 
 #### Step n.2: Define variable "s" with the sampleID and run TRIMMOMATIC
 ```
+conda activate preprocessing
 s="seq"
+```
+Conda has the ability to install part of the relevant files it needs. For instance, the software Trimmomatic, which is needed (among other things) to
+eliminate Illumina adapters from raw fastq, is installed toghether with all revelant Illumina adapters. This can create some problems, sometimes, when 
+one is not familiar with Anaconda package structure. Type:
 
-conda activate trimmomatic
+```
+ls /mnt/nfs2/manghip/projects/elixir_2026/src/elixir_conda/envs/preprocessing/share/trimmomatic/adapters/
+```
+See multiple fasta files with different type of adapters? This reflect and adapts to different type of sequencing procedure applied, allowing you to use Trimmomatic in
+different experimental settings.
 
+Now set the correct adapter sequences for this project:
+```
+truseq_adap="/mnt/nfs2/manghip/projects/elixir_2026/src/elixir_conda/envs/preprocessing/share/trimmomatic/adapters/TruSeq3-PE-2.fa"
+```
+
+Now launch Trimmomatic to 1) remove adapters 2) perform quality control
+```
 trimmomatic PE -threads 8 -phred33 -trimlog ${s}_trimmomatic.log ${s}1.fastq ${s}2.fastq \
 ${s}_filtered_1.fastq ${s}_unpaired_1.fastq ${s}_filtered_2.fastq ${s}_unpaired_2.fastq \
-ILLUMINACLIP:/data/anaconda3/envs/trimmomatic/share/trimmomatic/adapters/TruSeq3-PE-2.fa:2:30:10 \
-LEADING:20 TRAILING:20 SLIDINGWINDOW:4:15 MINLEN:75
+ILLUMINACLIP:${truseq_adap}:2:30:10 LEADING:20 TRAILING:20 SLIDINGWINDOW:4:15 MINLEN:75
+```
+You should see something like:
 
+```
+TrimmomaticPE: Started with arguments:
+ -threads 8 -phred33 -trimlog seq_trimmomatic.log seq1.fastq seq2.fastq seq_filtered_1.fastq seq_unpaired_1.fastq seq_filtered_2.fastq seq_unpaired_2.fastq ILLUMINACLIP:/mnt/nfs2/manghip/projects/elixir_2026/src/elixir_conda/envs/preprocessing/share/trimmomatic/adapters/TruSeq3-PE-2.fa:2:30:10 LEADING:20 TRAILING:20 SLIDINGWINDOW:4:15 MINLEN:75
+ILLUMINACLIP: Using adapter file from user-specified absolute path: /mnt/nfs2/manghip/projects/elixir_2026/src/elixir_conda/envs/preprocessing/share/trimmomatic/adapters/TruSeq3-PE-2.fa
+Using PrefixPair: 'TACACTCTTTCCCTACACGACGCTCTTCCGATCT' and 'GTGACTGGAGTTCAGACGTGTGCTCTTCCGATCT'
+Using Long Clipping Sequence: 'AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGTA'
+Using Long Clipping Sequence: 'AGATCGGAAGAGCACACGTCTGAACTCCAGTCAC'
+Using Long Clipping Sequence: 'GTGACTGGAGTTCAGACGTGTGCTCTTCCGATCT'
+Using Long Clipping Sequence: 'TACACTCTTTCCCTACACGACGCTCTTCCGATCT'
+ILLUMINACLIP: Using 1 prefix pairs, 4 forward/reverse sequences, 0 forward only sequences, 0 reverse only sequences
+Input Read Pairs: 42473 Both Surviving: 41006 (96.55%) Forward Only Surviving: 1259 (2.96%) Reverse Only Surviving: 178 (0.42%) Dropped: 30 (0.07%)
+TrimmomaticPE: Completed successfully
+
+```
+While normally ignored, stdout prompts like this one can communitcate you a lot of information, establishing a bridge in between your approach and the developer mind (who has, 
+typically, conceived the prompt messages to verify the meaningfullness of the software passages)
+
+But what did we produced ?
+
+```
 for i in *.fastq; do echo -ne "${i}\t"; cat "$i" | wc -l; done
 ```
 
