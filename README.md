@@ -10,7 +10,7 @@
 - [BONUS: Hands-on n.6 - Taxonomic profiling beyond the level of species using StrainPhlAn](#user-content-bonus-hands-on-n6---taxonomic-profiling-beyond-the-level-of-species-using-strainphlan)
 
 # Hands-on n.1 - Preprocessing of standard metagenomic data
-#### Step n.0: log in into your machine and explore the configuration
+## Step n.0: log in into your machine and explore the configuration
 ```
 ssh YOUR-NAME@212.189.202.106
 ```
@@ -51,7 +51,7 @@ Did it return:
 ```
 ?
 
-#### Step n.1: check if your environments are all set up and ready
+## Step n.1: check if your environments are all set up and ready
 ```
 which python
 conda info --envs
@@ -119,7 +119,7 @@ which metaphlan; which kraken; which bracken
 
 As you can see, the programs inside each environment are protected, meaning that they are visible only in that environment to not interefe with other installations.
 
-#### Step n.1: raw data pre-processing on fastq example files "seq_1.fastq.gz" and "seq_2.fastq.gz" from https://github.com/biobakery/biobakery/wiki/kneaddata
+## Step n.1: raw data pre-processing on fastq example files "seq_1.fastq.gz" and "seq_2.fastq.gz" from https://github.com/biobakery/biobakery/wiki/kneaddata
 In this step, we just download a toy fastq sample. Normally, this step may take a few weeks!
 
 ```
@@ -133,7 +133,7 @@ rm input.zip
 cd input
 ```
 
-#### Step n.2: Define variable "s" with the sampleID and run TRIMMOMATIC
+## Step n.2: Define variable "s" with the sampleID and run TRIMMOMATIC
 ```
 conda activate preprocessing
 s="seq"
@@ -192,10 +192,10 @@ preparation.
 
 We'll now see how to perform the removal of the human genome from the previously polished sequences.
 
-#### Step n. 3: Aligning reads against the humann genome, and retrieve only what does not align.
+## Step n. 3: Aligning reads against the humann genome, and retrieve only what does not align.
 
 First of all it is common practive to chose a single instance of the human genome. For this purpose we'll chose a modern one, sequenced using long-reads-based technologies
-(the 'telomer-to-telomer'). A copy of this genome can be find at: https://www.ncbi.nlm.nih.gov/datasets/genome/GCF_009914755.1/GCF_009914755.1_T2T-CHM13v2.0.fna.
+(the 'thelomer-to-thelomer'). A copy of this genome can be find at: https://www.ncbi.nlm.nih.gov/datasets/genome/GCF_009914755.1/GCF_009914755.1_T2T-CHM13v2.0.fna.
 
 This, like any other host-associated genome used in this phase, is normally retrieved from NCBI as it is important to be able to demonstrate the origin of the genomes used.
 We'll use bowtie2 to align our DNA sequences the human genome. The first step is thus to create the bowtie2 indexes to perform such a mapping.
@@ -256,8 +256,51 @@ zcat seq_filtered.final_2.fastq.gz | wc
 ```
 The result is in both cases 164004: as one read occupies EXACTLY 4 ROWS, the numbers add up.
 
-# Hands-on n.2 - Taxonomic profiling using marker genes with MetaPhlAn 4
-#### Step n.1: Setup correct variables, activate environment and navigate to the right folders
+# Hands-on n.2 - Taxonomic profiling: quantifying which species and taxa are there
+The following part covers the topic that is mostly what people often refer to when tehy name "metagenomics".
+In reality, this step covers two highly important but distinct aspects of the characterization of a given microbial community: 
+1) Detecting and naming species that are found in the community ("which species are there")
+2) Quantifying them (i.e. in relative terms).
+
+Why relative terms?
+Taxonomic profiling is, by definition, bound to assign a quantity to a given taxon on the basis of what has been sequenced. 
+However, what has been sequenced is, by definition, the result of a set of biases that will impact the final results, in short:
+
+1) The total number of clean reads obtained
+2) The general structure of the community.
+
+Why the general structure of the community? Because metagenomic data suffer from a mathematical problem called "compositionality", meaning that
+more abundant species tend, by the chemistry of the sequencing machinery, to produce more DNA, and consequently to attract more nucleotide and more
+sequencing signallings in the sequencing phase. The result? The species that are more abundant tend to be sequenced more, and result to be more abundant that
+they actually are. But they were already more abundant! Therefore sequencing tend to exacerbate the community structure, with more abundant species being
+exaggerately more abundant, and lowly abundant species being found often at negligible abundances.
+
+To perform taxonomic profiling, we will use two different methodologies.
+The first, implemented in the software MetaPhAn, is called marker-based. It works by assessing whether metagenomic reads map, by the entirety of their length, on 
+marker-genes: these marker genes are recorded in pre-constituted databases, and are species-specific. A species presence and abundance is therefore quantified by
+the number of marker genes that are found in the community of interest (after a step of normalization accounting the lenght of the genome of the species in question and 
+the total number of species-specific marker genes that are available). 
+
+The second approach, implemented in the software Kraken, is called k-mer-based. It works by assessing the presence of k-mers both in the query reads and in a database of genomes
+which taxonomy is known. K-mers are combinations of nucleotides strings of lenght 7, 13, 21 or a variable lenght. The software database is constituted in such a way that each k-mer 
+points directly to a genome in the taxonomic tree: therefore a read is decomposed into k-mers, and the read k-mers are searched directly in this database.
+
+Which approach is the best?
+The approaches display trade-offs and peculiarities.
+
+1) During database creation, MetaPhlAn must align each gene against each other, to ensure the marker-specifity. This massive computation cannot be performed by an individual user,
+therefore MetaPhlAn is restricted to the environments that are fully covered by its proprietary database. For human and mice it is considered slightly more accurate.
+2) Kraken databases can be easily created for almost any environment, which make it the standard choice for environmental and non-common metagenomes.
+3) MetaPhlAn integrates its own taxonomy, while Kraken must be coupled with some pre-existing taxonomy (either pure NCBI of GTDB). While there is no strict "better" in these two approaches,
+they remain different: MetaPhlAn has produced important advacements in amending NCBI taxonomy for this reason. Kraken is obliged to adhere to NCBI taxonomy, but remains the sole
+transportable to fully uncharacterized communities.
+4) To date, MetaPhlAn and Kraken database are similar in disk occupancy and consider a similar number of species (~120000). However MetaPhlAn stores information for 4M genomes, while Kraken stores in the typical use-case 1 genome per species. Therefore in the future MetaPhlAn risk to be inapplicable in environmental settings, while Kraken risks not be scalable to a relevant
+number of species.
+
+Conclusion? By most viewpoints, they leverage the same genomic databases and deply a similar species diversity, so to some extent they result comparable. It is recommandable to know both 
+and apply the most suitable on a per-case basis.
+
+## Step n.1: Setup correct variables, activate environment and navigate to the right folders
 
 We create the conda environment **we did it already**
 ```
