@@ -184,39 +184,77 @@ But what did we produced ?
 for i in *.fastq; do echo -ne "${i}\t"; cat "$i" | wc -l; done
 ```
 
-#### Step n. 4: Generate bowtie2 index of the human genome GCF_009914755.1_T2T-CHM13v2.0.fna (https://www.ncbi.nlm.nih.gov/datasets/genome/GCF_009914755.1/GCF_009914755.1_T2T-CHM13v2.0.fna)
+Now that we have cleaned our reads, we can focus on some biological aspect of the project: metagenomic samples can be host-derived or not, for instance they can be associated with a 
+human being, a dog, or a plant. In all these cases the characterization of associated microbial communities benefit from a step of removal of the host genome. The host genome can be present in small traces, like in the case of the humann intestine, or it can be constitute large part of the metagenomic sequences (like for instance in the case of dog saliva metagenomic samples).
 
-Activate conda, after setting the path of your version of the human genome
-```
-human_gen_path="/data/human_genome/"
-conda deactivate
-conda activate bowtie2
-```
+Environmental samples (water, soil, air) are not associated to a host. In principle, this implies that is not necessary to exclude the host. However, practically ANY sample should be, in addition to any preprocessing phase performed, treated as a human-derived sample, for the simple reason that this will remove putative human DNA contamination in ìntroduced during the sample 
+preparation.
 
+We'll now see how to perform the removal of the human genome from the previously polished sequences.
+
+#### Step n. 3: Aligning reads against the humann genome, and retrieve only what does not align.
+
+First of all it is common practive to chose a single instance of the human genome. For this purpose we'll chose a modern one, sequenced using long-reads-based technologies
+(the 'telomer-to-telomer'). A copy of this genome can be find at: https://www.ncbi.nlm.nih.gov/datasets/genome/GCF_009914755.1/GCF_009914755.1_T2T-CHM13v2.0.fna.
+
+This, like any other host-associated genome used in this phase, is normally retrieved from NCBI as it is important to be able to demonstrate the origin of the genomes used.
+We'll use bowtie2 to align our DNA sequences the human genome. The first step is thus to create the bowtie2 indexes to perform such a mapping.
+As it is a timy process, we have predisposed the ready-for-use bowtie2 indexes already. 
+
+Let's thus assign the bowtie2 indexes to a variable:
+```
+human_gen_bowtie_indexes='/mnt/nfs2/databases/bowtie2_indexes/GCF_009914755.1_T2T-CHM13v2.0_genomic'
+```
+Now we'll just align the fastq against the humann h
 Run bowtie alignment against the human genome:
 ```
 ##VERSION 4 HOURS LONG:
-## mkdir -p human_genome/
 ## bowtie2-build ${human_gen_path}GCF_009914755.1_T2T-CHM13v2.0.fna human_genome/GCF_009914755.1_T2T-CHM13v2.0 ### DON'T RUN IT! IT TAKES A FEW HOURS TO BE EXECUTED
 
-bowtie2 -x ${human_gen_path}GCF_009914755.1_T2T-CHM13v2.0 -1 ${s}_filtered_1.fastq -2 ${s}_filtered_2.fastq -S ${s}.sam --very-sensitive-local -p 8
+bowtie2 -x ${human_gen_bowtie_indexes} -1 ${s}_filtered_1.fastq -2 ${s}_filtered_2.fastq -S ${s}.sam --very-sensitive-local -p 8
+```
+See something like:
 
-conda deactivate
-conda activate samtools
+```
+41006 reads; of these:
+  41006 (100.00%) were paired; of these:
+    41006 (100.00%) aligned concordantly 0 times
+    0 (0.00%) aligned concordantly exactly 1 time
+    0 (0.00%) aligned concordantly >1 times
+    ----
+    41006 pairs aligned concordantly 0 times; of these:
+      0 (0.00%) aligned discordantly 1 time
+    ----
+    41006 pairs aligned 0 times concordantly or discordantly; of these:
+      82012 mates make up the pairs; of these:
+        82007 (99.99%) aligned 0 times
+        3 (0.00%) aligned exactly 1 time
+        2 (0.00%) aligned >1 times
+0.01% overall alignment rate
+```
+? While often disregarded, these stats are among the most important information you may want to store!
+Next, we must operate on the .bam file produced by bowtie2 (Remember? We still want a clean and usable fastq!)
 
+```
 samtools view -bS ${s}.sam > ${s}.bam
 samtools view -b -f 12 -F 256 ${s}.bam > ${s}.bothunmapped.bam
 samtools sort -n -m 5G -@ 2 ${s}.bothunmapped.bam -o ${s}.bothunmapped.sorted.bam
 samtools fastq ${s}.bothunmapped.sorted.bam -1 >(gzip > ${s}_filtered.final_1.fastq.gz) -2 >(gzip > ${s}_filtered.final_2.fastq.gz) -0 /dev/null -s /dev/null -n
 ```
-
-then remove the intermediate files, and check files size 
+Look at the last prompt:
 ```
-rm ${s}.sam; rm ${s}.bam; rm ${s}.bothunmapped.bam; rm ${s}.bothunmapped.sorted.bam ### REMOVE THE INTERMEDIATE FILES
-
-for i in *.fastq; do echo -ne "${i}\t"; cat "$i" | wc -l; done; echo; for i in *.gz; do echo -ne "${i}\t"; zcat "$i" | wc -l; done
+[M::bam2fq_mainloop] discarded 0 singletons
+[M::bam2fq_mainloop] processed 82002 reads
 ```
-Did the preprocessing produce the same exact number of reads in R1 and R2 ?
+
+With the last command, we have split the bam file resulting from alignment of both Reverse and Forward reads into two files: the program claims
+we have obtained 82002 reads. Let's do a brief check. We count the lines of the files produced:
+
+```
+zcat seq_filtered.final_1.fastq.gz | wc
+zcat seq_filtered.final_2.fastq.gz | wc
+```
+The result is in both cases 164004: as one read occupies EXACTLY 4 ROWS, the numbers add up.
 
 # Hands-on n.2 - Taxonomic profiling using marker genes with MetaPhlAn 4
 #### Step n.1: Setup correct variables, activate environment and navigate to the right folders
