@@ -89,6 +89,18 @@ conda create -n assembly -c bioconda -c conda-forge megahit bowtie2 metabat2 che
 3) Create one environment for MetaPhlAn and for Kraken/Bracken (taxonomic profiling)
 ```
 conda create -n tax_profiling -c bioconda -c conda-forge metaphlan kraken bracken
+
+mkdir -p ~/database/
+cd ~/database/
+metaphlan --install --db_dir metaphlan_databases --idx mpa_vJan21_CHOCOPhlAnSGB_202103
+
+wget https://genome-idx.s3.amazonaws.com/kraken/k2_standard_08gb_20250402.tar.gz
+mkdir -p kraken_databases && tar -xvzf k2_standard_08gb_20250402.tar.gz -C kraken_databases
+
+cd ../src
+git clone https://github.com/jenniferlu717/KrakenTools.git
+chmod +x KrakenTools/*
+
 ```
 4) Create one environment for HUMAnN4 (functional profiling of communities)
 ```
@@ -300,110 +312,247 @@ number of species.
 Conclusion? By most viewpoints, they leverage the same genomic databases and deply a similar species diversity, so to some extent they result comparable. It is recommandable to know both 
 and apply the most suitable on a per-case basis.
 
-## Step n.1: Setup correct variables, activate environment and navigate to the right folders
+## Step n.1: Perform MetaPhlAn profiling
 
-We create the conda environment **we did it already**
+We will start by activating the right environment. We have previously created it, is called *tax_profiling*:
 ```
-conda deactivate
-## conda create -n <mpa> -c conda-forge -c bioconda python=3.11 metaphlan=4.2.0
-conda activate mpa
+mkdir ~/metaphlan_taxonomic_profiling
+cd ~/metaphlan_taxonomic_profiling
+
+conda activate tax_profiling
+
+## **Step n.2: download metagenomic samples**
+
+We will perform the taxonomic profiling of five samples from human-associated microbiome. Spefically, we will analyzed
+microbiomes from:
+
+1) stool
+2) buccal mucosa
+3) tongue dorsum
+4) gingival plaque
+5) posterior fornix
+
+Let's launch the command to download these samples:
+
 ```
-
-We move to use it
-```
-cd ~
-
-mkdir 2_metaphlan
-cd 2_metaphlan
-
-## metaphlan --install --db_dir metaphlan_databases --idx mpa_vJan21_CHOCOPhlAnSGB_202103 ## DON'T RUN THIS
-```
-
-#### Step n.2: download metagenomic samples
-```
-mpa_db="/data/metaphlan_databases/"
-
-## db_version="mpa_vJan25_CHOCOPhlAnSGB_202503"
-db_version="mpa_vJan21_CHOCOPhlAnSGB_202103"
-
 wget https://github.com/biobakery/MetaPhlAn/releases/download/4.0.2/SRS014476-Supragingival_plaque.fasta.gz
 wget https://github.com/biobakery/MetaPhlAn/releases/download/4.0.2/SRS014494-Posterior_fornix.fasta.gz
 wget https://github.com/biobakery/MetaPhlAn/releases/download/4.0.2/SRS014459-Stool.fasta.gz
 wget https://github.com/biobakery/MetaPhlAn/releases/download/4.0.2/SRS014470-Tongue_dorsum.fasta.gz
 wget https://github.com/biobakery/MetaPhlAn/releases/download/4.0.2/SRS014472-Buccal_mucosa.fasta.gz
-
 ```
 
-#### Step n.3: Run MetaPhlAn 4
+## **Step n.3: Run MetaPhlAn 4**
 
-Take look at the MetaPhlAn parameters
+The first thing is to take a brief look at MetaPhlAn parameters. As for any other versatile software, there are numerous paramaters, but we will need only a few.
 ```
 metaphlan -h
 ```
-
-Then run it
+See ?
 ```
+usage: metaphlan --input_type {fastq,fasta,mapout,sam} [--force] [--db_dir METAPHLAN_DB] [-x INDEX] [--mapout FILE_NAME]
+                 [--min_mapq_val MIN_MAPQ_VAL] [--no_map] [--tmp_dir ] [--bt2_ps BowTie2 presets] [--bowtie2_exe BOWTIE2_EXE]
+                 [--bowtie2_build BOWTIE2_BUILD] [--tax_lev TAXONOMIC_LEVEL] [--min_alignment_len ] [--ignore_eukaryotes] [--ignore_bacteria]
+                 [--ignore_archaea] [--ignore_ksgbs] [--ignore_usgbs] [--stat_q ] [--perc_nonzero ] [--ignore_markers IGNORE_MARKERS]
+                 [--avoid_disqm] [--stat ] [-t ANALYSIS TYPE] [--nreads NUMBER_OF_READS] [--pres_th PRESENCE_THRESHOLD] [-o output file]
+                 [--sample_id_key name] [--use_group_representative] [--sample_id value] [-s sam_output_file] [--CAMI_format_output]
+                 [--skip_unclassified_estimation] [--biom_format_output] [--biom_mdelim mdelim] [--profile_vsc] [--vsc_out VSC_OUT]
+                 [--vsc_breadth VSC_BREADTH] [--long_reads] [--max_gcsd MAX_GCSD] [--minimap2_exe MINIMAP2_EXE] [--minimap2_ps minimap2 presets]
+                 [--nbases NUMBER_OF_BASES] [--split_reads] [--split_readlen SPLIT_READLEN] [--nproc N] [--subsampling SUBSAMPLING]
+                 [--mapping_subsampling] [--subsampling_seed SUBSAMPLING_SEED] [--subsampling_output SUBSAMPLING_OUTPUT]
+                 [--subsampling_paired SUBSAMPLING_PAIRED] [-1 FORWARD_READS] [-2 REVERSE_READS] [--install] [--offline] [--force_download]
+                 [--read_min_len READ_MIN_LEN] [--verbose] [-v] [-h]
+                 [INPUT_FILE]
+
+ MetaPhlAn version 4.2.4 (21 Oct 2025): 
+ METAgenomic PHyLogenetic ANalysis for metagenomic taxonomic profiling.
+
+ AUTHORS: Aitor Blanco-Miguez (aitor.blancomiguez@unitn.it), Francesco Beghini (francesco.beghini@unitn.it), Nicola Segata (nicola.segata@unitn.it), Duy Tin Truong, Francesco Asnicar (f.asnicar@unitn.it), Claudia Mengoni (claudia.mengoni@unitn.it), Linda Cova (linda.cova@unitn.it)
+
+positional arguments:
+  INPUT_FILE            the input file can be:
+                        * a fastq file containing metagenomic reads
+                        OR
+                        * a BowTie2 produced SAM file. 
+                        OR
+                        * a minimap2 produced SAM file (for long reads). 
+                        OR
+                        * an intermediary mapping file of the metagenome generated by a previous MetaPhlAn run (mapout)
+                        If the input file is missing, the script assumes that the input is provided using the standard 
+                        input, or named pipes.
+                        IMPORTANT: the type of input needs to be specified with --input_type
+
+[...]
+```
+
+MetaPhlAn can take multiple file types as input, and outputs different files. In short, when run on metagenomic reads,
+the procedure entails:
+
+1) mapping reads (using Bowtie2) against the marker gene database
+2) calculus of average coverage per species
+estimated by the coverage on the marker genes
+3) pooling of the coverages and estimation of species relative abundance
+4) grouping of the taxonomic level, starting from species-level, up to the kingdom
+
+We will start setting MetaPhlAn database paths and running it on the gingival plaque metagenomic sample:
+ 
+```
+mpa_db="../database/metaphlan_databases/"
+db_version="mpa_vJan21_CHOCOPhlAnSGB_202103"
+
 s="SRS014476-Supragingival_plaque"
+
 metaphlan ${s}.fasta.gz --input_type fasta --mapout ${s}.bowtie2.bz2 --samout ${s}.sam.bz2 -o ${s}_profile.txt \
     --nproc 8 --db_dir ${mpa_db} --index ${db_version}
 
-for s in SRS014459-Stool SRS014472-Buccal_mucosa SRS014470-Tongue_dorsum SRS014494-Posterior_fornix SRS014476-Supragingival_plaque; do
-    cp /data/course_backup/2_metaphlan/${s}_profile.txt ${s}_profile.txt; done
+#### for s in SRS014459-Stool SRS014472-Buccal_mucosa SRS014470-Tongue_dorsum SRS014494-Posterior_fornix SRS014476-Supragingival_plaque; do
+####     cp /data/course_backup/2_metaphlan/${s}_profile.txt ${s}_profile.txt; done
 
-## s="SRS014459-Stool"; metaphlan ${s}.fasta.gz --input_type fasta --mapout ${s}.bowtie2.bz2 --samout ${s}.sam.bz2 -o ${s}_profile.txt \
-##    --nproc 8 --db_dir ${mpa_db} --index ${db_version}
-## s="SRS014470-Tongue_dorsum"; metaphlan ${s}.fasta.gz --input_type fasta --mapout ${s}.bowtie2.bz2 --samout ${s}.sam.bz2 -o ${s}_profile.txt \
-##    --nproc 8 --db_dir ${mpa_db} --index ${db_version}
-## s="SRS014472-Buccal_mucosa"; metaphlan ${s}.fasta.gz --input_type fasta --mapout ${s}.bowtie2.bz2 --samout ${s}.sam.bz2 -o ${s}_profile.txt \
-##    --nproc 8 --db_dir ${mpa_db} --index ${db_version}
-## s="SRS014494-Posterior_fornix"; metaphlan ${s}.fasta.gz --input_type fasta --mapout ${s}.bowtie2.bz2 --samout ${s}.sam.bz2 -o ${s}_profile.txt \
-##    --nproc 8 --db_dir ${mpa_db} --index ${db_version}
+s="SRS014459-Stool"; metaphlan ${s}.fasta.gz --input_type fasta --mapout ${s}.bowtie2.bz2 --samout ${s}.sam.bz2 -o ${s}_profile.txt \
+   --nproc 8 --db_dir ${mpa_db} --index ${db_version}
+s="SRS014470-Tongue_dorsum"; metaphlan ${s}.fasta.gz --input_type fasta --mapout ${s}.bowtie2.bz2 --samout ${s}.sam.bz2 -o ${s}_profile.txt \
+   --nproc 8 --db_dir ${mpa_db} --index ${db_version}
+s="SRS014472-Buccal_mucosa"; metaphlan ${s}.fasta.gz --input_type fasta --mapout ${s}.bowtie2.bz2 --samout ${s}.sam.bz2 -o ${s}_profile.txt \
+  --nproc 8 --db_dir ${mpa_db} --index ${db_version}
+s="SRS014494-Posterior_fornix"; metaphlan ${s}.fasta.gz --input_type fasta --mapout ${s}.bowtie2.bz2 --samout ${s}.sam.bz2 -o ${s}_profile.txt \
+  --nproc 8 --db_dir ${mpa_db} --index ${db_version}
 
 merge_metaphlan_tables.py *_profile.txt | grep -P "clade_name|UNCLASSIFIED|t__" > metaphlan_table.tsv
 ```
 
-# Hands-on n.3 - Taxonomic profiling using k-mers: Kraken + Bracken taxonomic profiling
-#### Step n.1: Check everything is set up and create kraken + bracken DB
+## **Step n.4: Perform Kraken + Bracken taxonomic profiling (of the same samples!)**
 
+Kraken is normally coupled with Bracken. The two softwares are considered companions and have been designed by the same developers.
+Although considered among the top-performers, metagenomic people are aware of a potential kraken limitation: mapping onto the whole
+genomic sequence, k-mers may be ambigously located on two highly-similar species. To solve this problem, Kraken assigns reads that
+may ambigously map against species A and species B their Lowest Common Ancestor (LCA). As species A and B are similar, their LCA will
+likely be their genus: Kraken thus display a bias, in that it assigns reads to superior taxonomic level more easily.
+
+Bracken is, in words, the piece of software designed to address this issue: Bracken uses Baysian statistics to redistribute ambigous reads, and as such the trick is
+hydden in the correct estimation of the priors. Each species has two key-numbers:
+
+1) the number of unique k-mers (which is a  charcteristic of the database)
+2) the number of uniquely assigned reads.
+
+Clearly, the ** random ** distribution of reads between the two species is not derived from having the same number of reads among the two, but having the same proportion of
+Number of reads / Number of unique K-mers
+
+Or, in other words, species that have very little unique k-mers in their genomes, are expected to show a greater abundance if we assumed that the number of uniquely assigned reads
+is the same. In short, Bracken redistribute ambiguous reads based the probability of observing the observed number of non-ambiguous calls, considering the number of unique k-mers for
+the species.
+
+Albeit pratically this methodology works, and is the de-facto standard for non-humann communities, precautions must be taken when extensively running Bracken:
+
+1) The resulting number of species with standard parameters is notoriously too-high (based on consideration on human being, in which we know precisely what to expect)
+2) In environmental samples, the Bracken rate of False Positives may be perceived as sensitivity
+
+When running Bracken, it is therefore practically advised to apply an additional filter at > 1000 reads, meaning lowering to zero everything that, after the Baysian statistical
+algorithm, maintain a count of reads below 1000. Despite this potential pitfall, Bracken remains the standard for profiling environmental or non-common communities (for example marine metagenomes or yet-to-be-surveyed animals).
+
+Let's now create the folder and run the two softwares:
 ```
-conda deactivate
-## conda create -n <kraken_+_bracken> -c bioconda kraken2
-conda activate kraken_+_bracken
-
-cd ~
-mkdir 3_kraken
-cd 3_kraken
-
-## wget https://genome-idx.s3.amazonaws.com/kraken/k2_standard_08gb_20250402.tar.gz
-## mkdir -p kraken_DB && tar -xvzf k2_standard_08gb_20250402.tar.gz -C kraken_DB
-## git clone https://github.com/jenniferlu717/KrakenTools.git
-## chmod +x KrakenTools/*
+mkdir -p ~/Kraken_Bracken_taxonomic_profiling
+cd ~/Kraken_Bracken_taxonomic_profiling
 ```
 
-#### Step n.3: Let's have a look at Kraken parameters
+Let us have a look a Kraken parameters:
 ```
 kraken2 -h
 ```
+See ?
+```
+Usage: kraken2 [options] <filename(s)>
 
-Run Kraken
+Options:
+  --db NAME               Name for Kraken 2 DB
+                          (default: none)
+  --threads NUM           Number of threads (default: 1)
+  --quick                 Quick operation (use first hit or hits)
+  --unclassified-out FILENAME
+                          Print unclassified sequences to filename
+  --classified-out FILENAME
+                          Print classified sequences to filename
+  --output FILENAME       Print output to filename (default: stdout); "-" will
+                          suppress normal output
+  --confidence FLOAT      Confidence score threshold (default: 0.0); must be
+                          in [0, 1].
+  --minimum-base-quality NUM
+                          Minimum base quality used in classification (def: 0,
+                          only effective with FASTQ input).
+  --report FILENAME       Print a report with aggregrate counts/clade to file
+  --use-mpa-style         With --report, format report output like Kraken 1's
+                          kraken-mpa-report
+  --report-zero-counts    With --report, report counts for ALL taxa, even if
+                          counts are zero
+  --report-minimizer-data With --report, report minimizer and distinct minimizer
+                          count information in addition to normal Kraken report
+  --memory-mapping        Avoids loading database into RAM
+  --paired                The filenames provided have paired-end reads
+  --use-names             Print scientific names instead of just taxids
+  --gzip-compressed       Input files are compressed with gzip
+  --bzip2-compressed      Input files are compressed with bzip2
+  --minimum-hit-groups NUM
+                          Minimum number of hit groups (overlapping k-mers
+                          sharing the same minimizer) needed to make a call
+                          (default: 2)
+
+```
+
+We are now going to run kraken on the same set of samples as before:
 ```
 for s in SRS014459-Stool.fasta.gz SRS014470-Tongue_dorsum.fasta.gz SRS014472-Buccal_mucosa.fasta.gz SRS014476-Supragingival_plaque.fasta.gz SRS014494-Posterior_fornix.fasta.gz;
-
-do kraken2 --db /data/kraken_DB/ --threads 8 --report `basename ${s%.fasta.gz}`.kraken2_report.txt --output `basename ${s%.fasta.gz}`.kraken2_output.txt ../2_metaphlan/${s}; done
+do
+kraken2 --db ../database/kraken_databases/ --threads 8 --report `basename ${s%.fasta.gz}`.kraken2_report.txt --output `basename ${s%.fasta.gz}`.kraken2_output.txt ../metaphlan_taxonomic_profiling//${s};
+done
 ```
 
-Run Bracken
+As said, we are now going to correct the ambiguity bias in Kraken using Bracken:
 ```
-for s in SRS014459-Stool.fasta.gz SRS014470-Tongue_dorsum.fasta.gz SRS014472-Buccal_mucosa.fasta.gz SRS014476-Supragingival_plaque.fasta.gz SRS014494-Posterior_fornix.fasta.gz;
+for s in SRS014459-Stool.fasta.gz SRS014470-Tongue_dorsum.fasta.gz SRS014472-Buccal_mucosa.fasta.gz SRS014476-Supragingival_plaque.fasta.gz SRS014494-Posterior_fornix.fasta.gz; do
+bracken -d ../database/kraken_databases/ -i `basename ${s%.fasta.gz}`.kraken2_report.txt -o `basename ${s%.fasta.gz}`.bracken_abundance.txt -w `basename ${s%.fasta.gz}`.bracken_report.txt -l S -t 150;
+done
+```
 
-do bracken -d /data/kraken_DB/ -i `basename ${s%.fasta.gz}`.kraken2_report.txt -o `basename ${s%.fasta.gz}`.bracken_abundance.txt -w `basename ${s%.fasta.gz}`.bracken_report.txt -l S -t 150; done
+Similarly to what done for MetaPhlAn, we will now merge all the Bracken outputs into a MetaPhlAn-like taxonomy, to make them comparable. We will make use
+of the suite KrakenTools, which we have previously downloaded from github.
 
-for s in *.bracken_report.txt; do /data/KrakenTools/kreport2mpa.py --display-header -r ${s} -o ${s%.txt}.mpa.tsv; done
+```
+for s in *.bracken_report.txt; do ../src/KrakenTools/kreport2mpa.py --display-header -r ${s} -o ${s%.txt}.mpa.tsv; done
+```
 
-/data/KrakenTools/combine_mpa.py -i *.bracken_report.mpa.tsv -o merged_bracken_table.tsv
+This last command has created files in a format that we can handle very easily. Type:
+```
+cat SRS014470-Tongue_dorsum.bracken_report.mpa.tsv
+```
+See ?
 
+```
+#Classification SRS014470-Tongue_dorsum.bracken_report.txt
+d__Bacteria     1152
+d__Bacteria|k__Pseudomonadati   1152
+d__Bacteria|k__Pseudomonadati|p__Bacteroidota   880
+d__Bacteria|k__Pseudomonadati|p__Bacteroidota|c__Bacteroidia    880
+d__Bacteria|k__Pseudomonadati|p__Bacteroidota|c__Bacteroidia|o__Bacteroidales   880
+d__Bacteria|k__Pseudomonadati|p__Bacteroidota|c__Bacteroidia|o__Bacteroidales|f__Prevotellaceae 880
+d__Bacteria|k__Pseudomonadati|p__Bacteroidota|c__Bacteroidia|o__Bacteroidales|f__Prevotellaceae|g__Prevotella   880
+d__Bacteria|k__Pseudomonadati|p__Bacteroidota|c__Bacteroidia|o__Bacteroidales|f__Prevotellaceae|g__Prevotella|s__Prevotella_melaninogenica      475
+d__Bacteria|k__Pseudomonadati|p__Bacteroidota|c__Bacteroidia|o__Bacteroidales|f__Prevotellaceae|g__Prevotella|s__Prevotella_histicola   404
+d__Bacteria|k__Pseudomonadati|p__Campylobacterota       271
+d__Bacteria|k__Pseudomonadati|p__Campylobacterota|c__Epsilonproteobacteria      271
+d__Bacteria|k__Pseudomonadati|p__Campylobacterota|c__Epsilonproteobacteria|o__Campylobacterales 271
+d__Bacteria|k__Pseudomonadati|p__Campylobacterota|c__Epsilonproteobacteria|o__Campylobacterales|f__Campylobacteraceae   271
+d__Bacteria|k__Pseudomonadati|p__Campylobacterota|c__Epsilonproteobacteria|o__Campylobacterales|f__Campylobacteraceae|g__Campylobacter  271
+d__Bacteria|k__Pseudomonadati|p__Campylobacterota|c__Epsilonproteobacteria|o__Campylobacterales|f__Campylobacteraceae|g__Campylobacter|s__Campylobacter_concisus        271
+```
+
+We now want to combine all Bracken table together, like we did for MetaPhlAn:
+
+```
+../src/KrakenTools/combine_mpa.py -i *.bracken_report.mpa.tsv -o merged_bracken_table.tsv
 sed 's/.bracken_report.txt//g' merged_bracken_table.tsv | grep -P 'Classification|s__' | sed 's/Bacillati/Bacteria/g' | sed 's/Pseudomonadati/Bacteria/g' > bracken_table.tsv
 ```
+
+# Hands-on n.3 - Scripting in R to compare the results
 
 ## Exercises:
 First, set the correct conda environment:
