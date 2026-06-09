@@ -445,7 +445,8 @@ the species.
 Albeit pratically this methodology works, and is the de-facto standard for non-humann communities, precautions must be taken when extensively running Bracken:
 
 1) The resulting number of species with standard parameters is notoriously too-high (based on consideration on human being, in which we know precisely what to expect)
-2) In environmental samples, the Bracken rate of False Positives may be perceived as sensitivity
+2) In environmental samples, the Bracken rate of False Positives may be perceived as sensitivity (since finding a lot of species in an environment which should have a lot of species
+seems like the right thing: in reality the great majority of species found in such environment remains uncharacterized also by Kraken).
 
 When running Bracken, it is therefore practically advised to apply an additional filter at > 1000 reads, meaning lowering to zero everything that, after the Baysian statistical
 algorithm, maintain a count of reads below 1000. Despite this potential pitfall, Bracken remains the standard for profiling environmental or non-common communities (for example marine metagenomes or yet-to-be-surveyed animals).
