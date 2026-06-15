@@ -119,6 +119,14 @@ conda config --add channels biobakery
 conda install humann=4.0.0a1 -c biobakery -c bioconda -c conda-forge
 conda install metaphlan=4.1 -c bioconda
 #### metaphlan --install --index mpa_vOct22_CHOCOPhlAnSGB_202403
+ 
+#### humann_databases --download chocophlan full humann_databases ## DON'T 
+#### humann_databases --download uniref uniref90_ec_filtered_diamond humann_databases ## DON'T
+#### humann_databases --download utility_mapping full humann_databases ## DON'T
+
+humann_config --update database_folders nucleotide /data/humann_databases/chocophlan/
+humann_config --update database_folders protein /data/humann_databases/uniref/
+humann_config --update database_folders utility_mapping /data/humann_databases/utility_mapping/
 ```
 
 6) Create one environment for Genomic Annotations
@@ -622,32 +630,20 @@ http://212.189.202.106:8888/tree?token=398cde02036d5c0c4e8162b5e21758c5d7f9fa90d
 ```
 press ctrl + c, type y and exit jupyter
 
+
 # Hands-On 4: functional profiling at the community level using HUMAnN 4
+The next tool we are going apply represents one unique alternative to perform genetic/functional analysis in microbiome project. As a general concept, HUMAnN 4 solves a easy-to-understand problem, i.e.: it assigns metagenomic reads to functions in UniRef90.
+
 #### Step n.1: Get into the right directory & install download the necessary files
 ```
-cd ~
-## conda create -n <humann4> -c bioconda python=3.12 ## DON'T DO IT. WE DID ALREADY
-
-conda deactivate 
-conda activate humann4
-
-## conda config --add channels biobakery
-## conda install humann=4.0 -c biobakery  ## DON'T DO IT. WE DID ALREADY
-## conda install metaphlan=4.1 -c bioconda ## DON'T
-## metaphlan --install --index mpa_vOct22_CHOCOPhlAnSGB_202403
-
-mkdir -p 4_humann
-cd 4_humann
-
-## humann_databases --download chocophlan full humann_databases ## DON'T 
-## humann_databases --download uniref uniref90_ec_filtered_diamond humann_databases ## DON'T
-## humann_databases --download utility_mapping full humann_databases ## DON'T
+mkdir functional_profiling
+cd functional_profiling
 ```
 
 #### Step n.2: test that HUMAnN runs properly and have a look at the HUMAnN parameters
 ```
 humann_test
-## humann_config
+humann_config
 humann -h
 ```
 
