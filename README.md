@@ -33,43 +33,44 @@ similar goals: having an infrastructure that coordinates multiple softwares with
 We'll use Anaconda, as it is the one requiring less specific knowledge.
 In order to activate the right Anaconda settig, we must just set a series of environmental variables. Type:
 ```
-source /mnt/nfs2/manghip/projects/elixir_2026/src/elixir_conda/.conda
+source /data/anaconda2026/.conda
 ```
 
 Now, see the (base) string in the bottom-left corner of the screen ?
 Type:
 
 ```
-which conda
 which python
+which conda
 ```
 
 Did it return:
 ```
-/mnt/nfs2/manghip/projects/elixir_2026/src/elixir_conda/bin/python 
-/mnt/nfs2/manghip/projects/elixir_2026/src/elixir_conda/bin/conda
+/data/anaconda2026/bin/python
+/data/anaconda2026/bin/conda
 ```
 ?
 
 ## Step n.1: check if your environments are all set up and ready
 ```
-which python
 conda info --envs
 ```
+
 You should see:
 
 ```
 # conda environments:
 #
-base                 * /mnt/nfs2/manghip/projects/elixir_2026/src/elixir_conda
-assembly               /mnt/nfs2/manghip/projects/elixir_2026/src/elixir_conda/envs/assembly
-genome_annotation      /mnt/nfs2/manghip/projects/elixir_2026/src/elixir_conda/envs/genome_annotation
-humann4                /mnt/nfs2/manghip/projects/elixir_2026/src/elixir_conda/envs/humann4
-preprocessing          /mnt/nfs2/manghip/projects/elixir_2026/src/elixir_conda/envs/preprocessing
-tax_profiling          /mnt/nfs2/manghip/projects/elixir_2026/src/elixir_conda/envs/tax_profiling
+base                 * /data/anaconda2026
+assembly               /data/anaconda2026/envs/assembly
+genome_annotation      /data/anaconda2026/envs/genome_annotation
+humann4                /data/anaconda2026/envs/humann4
+preprocessing          /data/anaconda2026/envs/preprocessing
+tax_profiling          /data/anaconda2026/envs/tax_profiling
 ```
 
 Did it work ?
+
 In case it doesn't work is very easy to install all Conda environments.
 0) Explain how to search for correct program versions:
 ```
@@ -164,14 +165,14 @@ eliminate Illumina adapters from raw fastq, is installed toghether with all reve
 one is not familiar with Anaconda package structure. Type:
 
 ```
-ls /mnt/nfs2/manghip/projects/elixir_2026/src/elixir_conda/envs/preprocessing/share/trimmomatic/adapters/
+ls /data/anaconda2026/envs/preprocessing/share/trimmomatic/adapters/
 ```
 See multiple fasta files with different type of adapters? This reflect and adapts to different type of sequencing procedure applied, allowing you to use Trimmomatic in
 different experimental settings.
 
 Now set the correct adapter sequences for this project:
 ```
-truseq_adap="/mnt/nfs2/manghip/projects/elixir_2026/src/elixir_conda/envs/preprocessing/share/trimmomatic/adapters/TruSeq3-PE-2.fa"
+truseq_adap="/data/anaconda2026/envs/preprocessing/share/trimmomatic/adapters/TruSeq3-PE-2.fa"
 ```
 
 Now launch Trimmomatic to 1) remove adapters 2) perform quality control
@@ -224,13 +225,13 @@ As it is a timy process, we have predisposed the ready-for-use bowtie2 indexes a
 
 Let's thus assign the bowtie2 indexes to a variable:
 ```
-human_gen_bowtie_indexes='/mnt/nfs2/databases/bowtie2_indexes/GCF_009914755.1_T2T-CHM13v2.0_genomic'
+human_gen_bowtie_indexes="/data/human_genome/GCF_009914755.1_T2T-CHM13v2.0"
 ```
 Now we'll just align the fastq against the humann h
 Run bowtie alignment against the human genome:
 ```
 ##VERSION 4 HOURS LONG:
-## bowtie2-build ${human_gen_path}GCF_009914755.1_T2T-CHM13v2.0.fna human_genome/GCF_009914755.1_T2T-CHM13v2.0 ### DON'T RUN IT! IT TAKES A FEW HOURS TO BE EXECUTED
+## bowtie2-build ${human_gen_bowtie_indexes/_genomic/.fna} /data/human_genome/GCF_009914755.1_T2T-CHM13v2.0 ### DON'T RUN IT: IT TAKES A FEW HOURS TO BE EXECUTED
 
 bowtie2 -x ${human_gen_bowtie_indexes} -1 ${s}_filtered_1.fastq -2 ${s}_filtered_2.fastq -S ${s}.sam --very-sensitive-local -p 8
 ```
@@ -325,9 +326,10 @@ and apply the most suitable on a per-case basis.
 
 We will start by activating the right environment. We have previously created it, is called *tax_profiling*:
 ```
-mkdir ~/metaphlan_taxonomic_profiling
-cd ~/metaphlan_taxonomic_profiling
+mkdir metaphlan_taxonomic_profiling
+cd metaphlan_taxonomic_profiling
 
+conda deactivate
 conda activate tax_profiling
 ```
 
@@ -407,7 +409,7 @@ estimated by the coverage on the marker genes
 We will start setting MetaPhlAn database paths and running it on the gingival plaque metagenomic sample:
  
 ```
-mpa_db="../database/metaphlan_databases/"
+mpa_db="/data/metaphlan_databases/"
 db_version="mpa_vJan21_CHOCOPhlAnSGB_202103"
 
 s="SRS014476-Supragingival_plaque"
@@ -462,8 +464,8 @@ algorithm, maintain a count of reads below 1000. Despite this potential pitfall,
 
 Let's now create the folder and run the two softwares:
 ```
-mkdir -p ~/Kraken_Bracken_taxonomic_profiling
-cd ~/Kraken_Bracken_taxonomic_profiling
+mkdir -p ../Kraken_Bracken_taxonomic_profiling
+cd ../Kraken_Bracken_taxonomic_profiling
 ```
 
 Let us have a look a Kraken parameters:
@@ -513,14 +515,41 @@ We are now going to run kraken on the same set of samples as before:
 ```
 for s in SRS014459-Stool.fasta.gz SRS014470-Tongue_dorsum.fasta.gz SRS014472-Buccal_mucosa.fasta.gz SRS014476-Supragingival_plaque.fasta.gz SRS014494-Posterior_fornix.fasta.gz;
 do
-kraken2 --db ../database/kraken_databases/ --threads 8 --report `basename ${s%.fasta.gz}`.kraken2_report.txt --output `basename ${s%.fasta.gz}`.kraken2_output.txt ../metaphlan_taxonomic_profiling//${s};
+kraken2 --db /data/kraken_DB/ --threads 8 --report `basename ${s%.fasta.gz}`.kraken2_report.txt --output `basename ${s%.fasta.gz}`.kraken2_output.txt ../metaphlan_taxonomic_profiling//${s};
 done
+```
+
+See?
+```
+Loading database information... done.
+20000 sequences (1.97 Mbp) processed in 0.274s (4383.7 Kseq/m, 430.85 Mbp/m).
+  6529 sequences classified (32.65%)
+  13471 sequences unclassified (67.36%)
+Loading database information... done.
+20000 sequences (1.90 Mbp) processed in 0.206s (5820.9 Kseq/m, 551.89 Mbp/m).
+  4430 sequences classified (22.15%)
+  15570 sequences unclassified (77.85%)
+Loading database information... done.
+20000 sequences (1.95 Mbp) processed in 0.206s (5827.7 Kseq/m, 566.89 Mbp/m).
+  6786 sequences classified (33.93%)
+  13214 sequences unclassified (66.07%)
+Loading database information... done.
+20000 sequences (1.85 Mbp) processed in 0.134s (8956.7 Kseq/m, 827.78 Mbp/m).
+  4803 sequences classified (24.02%)
+  15197 sequences unclassified (75.98%)
+Loading database information... done.
+20000 sequences (1.90 Mbp) processed in 0.127s (9420.9 Kseq/m, 895.69 Mbp/m).
+  8515 sequences classified (42.58%)
+  11485 sequences unclassified (57.42%)
 ```
 
 As said, we are now going to correct the ambiguity bias in Kraken using Bracken:
 ```
-for s in SRS014459-Stool.fasta.gz SRS014470-Tongue_dorsum.fasta.gz SRS014472-Buccal_mucosa.fasta.gz SRS014476-Supragingival_plaque.fasta.gz SRS014494-Posterior_fornix.fasta.gz; do
-bracken -d ../database/kraken_databases/ -i `basename ${s%.fasta.gz}`.kraken2_report.txt -o `basename ${s%.fasta.gz}`.bracken_abundance.txt -w `basename ${s%.fasta.gz}`.bracken_report.txt -l S -t 150;
+for s in SRS014459-Stool.fasta.gz SRS014470-Tongue_dorsum.fasta.gz SRS014472-Buccal_mucosa.fasta.gz SRS014476-Supragingival_plaque.fasta.gz SRS014494-Posterior_fornix.fasta.gz;
+do
+
+bracken -d /data/kraken_DB/ -i `basename ${s%.fasta.gz}`.kraken2_report.txt -o `basename ${s%.fasta.gz}`.bracken_abundance.txt -w `basename ${s%.fasta.gz}`.bracken_report.txt -l S -t 150;
+
 done
 ```
 
@@ -528,7 +557,7 @@ Similarly to what done for MetaPhlAn, we will now merge all the Bracken outputs 
 of the suite KrakenTools, which we have previously downloaded from github.
 
 ```
-for s in *.bracken_report.txt; do ../src/KrakenTools/kreport2mpa.py --display-header -r ${s} -o ${s%.txt}.mpa.tsv; done
+for s in *.bracken_report.txt; do  /data/KrakenTools/kreport2mpa.py --display-header -r ${s} -o ${s%.txt}.mpa.tsv; done
 ```
 
 This last command has created files in a format that we can handle very easily. Type:
@@ -559,7 +588,7 @@ d__Bacteria|k__Pseudomonadati|p__Campylobacterota|c__Epsilonproteobacteria|o__Ca
 We now want to combine all Bracken table together, like we did for MetaPhlAn:
 
 ```
-../src/KrakenTools/combine_mpa.py -i *.bracken_report.mpa.tsv -o merged_bracken_table.tsv
+/data/KrakenTools/combine_mpa.py -i *.bracken_report.mpa.tsv -o merged_bracken_table.tsv
 sed 's/.bracken_report.txt//g' merged_bracken_table.tsv | grep -P 'Classification|s__' | sed 's/Bacillati/Bacteria/g' | sed 's/Pseudomonadati/Bacteria/g' > bracken_table.tsv
 ```
 
@@ -569,19 +598,19 @@ sed 's/.bracken_report.txt//g' merged_bracken_table.tsv | grep -P 'Classificatio
 First, set the correct conda environment:
 ```
 conda deactivate 
-conda activate r_notebook
+conda activate r_notebooks
 
 cd ~
 ```
 
 Next, open jupiter notebook:
 ```
-jupyter notebook src/Notebooks/Alpha_diversity.ipynb --allow-root --no-browser --port=8888 --ip=127.0.0.1
+jupyter notebook /data/Jupyter/Alpha_diversity.ipynb --allow-root --no-browser --port=8888 --ip=127.0.0.1
 ```
 
 Next, open up a new TERMINAL and Type:
 ```
-ssh -N -L 8888:127.0.0.1:8888 manghip@10.10.82.12
+ssh -N -L 8888:127.0.0.1:8888 root@212.189.202.106
 ```
 
 Note it holds but doesn't do anything. It means that a tunnel is open.
