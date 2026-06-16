@@ -148,8 +148,8 @@ chmod +x KrakenTools/*
 ```
 4) conda create -n r_notebooks -c bioconda -c conda-forge r-base=4.3 jupyter r-irkernel r-microeco r-tidyverse=2.0.0
 ```
+
 Microeco must be installed directly in R:
-Press:
 ```
 (r_notebooks) cdonati@mbc1:~# R
 
