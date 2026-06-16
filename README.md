@@ -815,9 +815,9 @@ Binning means collecting toghether pieces of genome reconstructed from assembly,
 a) frequency of tetra-nucleotides (TNF): each combination of ACTG (256 in total) is counted. The frequency of such combination is informative, meaning that it tend to gather information such as codon usage, restriction sites
 b) co-abundant chunks: this part uses the results from the bowtie2 remapping, telling us how deeply are covered genomic chunks. In binning this is highly informative: two moieties from the genome of a single species are clearly present with the same number of copies: n copies each, for n copies of the species. This implies that, mapping metagenomic reads onto all contigs, the two moieties will absorb approximately the same number of reads.
 
-Binning normally combines these two strategies in a single similarity metric, that is then use to perform a hierarchical clustering to tell chunks from the same species apart. 
+Binning normally combines these two strategies in a single similarity metric, that is then use to perform a hierarchical clustering to tell chunks from the same species apart. These metrics must lean of a certain contig lenght to work properly, reason practically contigs shorter than 1500 nt are normally excluded from any computation focused on genomes.
     
-It makes to wonder why the number 2: the reason is that step 3) (binning) can be perform 
+The last step is quality-control: clearly, the above procedure is not granted to produce perfect genomes. The binned contigs may be a) binned wrongly or simply b) too few to form a decent genome. Practically, what is normally done is that bins are generated, and suitable genomes are determined among these by screening them with dedicated softwares.
 
 #### Step n.1: check everything is set up, download a sample, and run Megahit
 ```
