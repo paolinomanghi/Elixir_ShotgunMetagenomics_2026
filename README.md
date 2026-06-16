@@ -96,7 +96,6 @@ humann4                  /data/anaconda2026/envs/humann4
 preprocessing            /data/anaconda2026/envs/preprocessing
 r_notebooks              /data/anaconda2026/envs/r_notebooks
 tax_profiling            /data/anaconda2026/envs/tax_profiling
-
 ```
 
 Did it work ?
@@ -147,9 +146,35 @@ chmod +x KrakenTools/*
 
 4) To create one environment for running jupiter notebooks with analyses in R, type:
 ```
-4) conda create -n r_notebooks -c bioconda -c conda-forge r-base=4.3 jupyter r-irkernel r-microeco r-tidyverse
-
+4) conda create -n r_notebooks -c bioconda -c conda-forge r-base=4.3 jupyter r-irkernel r-microeco r-tidyverse=2.0.0
 ```
+Microeco must be installed directly in R:
+Press:
+```
+(r_notebooks) cdonati@mbc1:~# R
+
+R version 4.3.3 (2024-02-29) -- "Angel Food Cake"
+Copyright (C) 2024 The R Foundation for Statistical Computing
+Platform: x86_64-conda-linux-gnu (64-bit)
+
+R is free software and comes with ABSOLUTELY NO WARRANTY.
+You are welcome to redistribute it under certain conditions.
+Type 'license()' or 'licence()' for distribution details.
+
+R is a collaborative project with many contributors.
+Type 'contributors()' for more information and
+'citation()' on how to cite R or R packages in publications.
+
+Type 'demo()' for some demos, 'help()' for on-line help, or
+'help.start()' for an HTML browser interface to help.
+Type 'q()' to quit R.
+
+[Previously saved workspace restored]
+
+> install.packages("microeco", dependencies = TRUE)
+```
+
+
 
 5) To create one environment for HUMAnN4 (functional profiling of communities), type:
 ```
@@ -157,7 +182,7 @@ conda create -n humann4 -c bioconda python=3.12
 conda activate humann4
 conda config --add channels biobakery
 conda install humann=4.0.0a1 -c biobakery -c bioconda -c conda-forge
-conda install metaphlan=4.1 -c bioconda
+conda install metaphlan=4.1.1 bowtie2 -c bioconda
 
 humann_config --update database_folders nucleotide /data/humann_databases/chocophlan/
 humann_config --update database_folders protein /data/humann_databases/uniref/
@@ -490,15 +515,12 @@ merge_metaphlan_tables.py *_profile.txt | grep -P "clade_name|UNCLASSIFIED|t__" 
 ## **Step n.4: Perform Kraken + Bracken taxonomic profiling (of the same samples!)**
 
 Kraken is normally coupled with Bracken. The two softwares are considered companions and have been designed by the same developers.
-Although considered among the top-performers, metagenomic people are aware of a potential kraken limitation: mapping onto the whole
-genomic sequence, k-mers may be ambigously located on two highly-similar species. To solve this problem, Kraken assigns reads that
-may ambigously map against species A and species B their Lowest Common Ancestor (LCA). As species A and B are similar, their LCA will
-likely be their genus: Kraken thus display a bias, in that it assigns reads to superior taxonomic level more easily.
 
-Bracken is, in words, the piece of software designed to address this issue: Bracken uses Baysian statistics to redistribute ambigous reads, and as such the trick is
-hydden in the correct estimation of the priors. Each species has two key-numbers:
+Although considered among the top-performers, metagenomic people are aware of a potential kraken limitation: mapping onto the whole genomic sequence, k-mers may be ambigously located on two highly-similar species. To solve this problem, Kraken assigns reads that may ambigously map against species A and species B their Lowest Common Ancestor (LCA). As species A and B are similar, their LCA will likely be their genus: Kraken thus display a bias, in that it assigns reads to superior taxonomic level more easily.
 
-1) the number of unique k-mers (which is a  charcteristic of the database)
+Bracken is, in words, the piece of software designed to address this issue: Bracken uses Baysian statistics to redistribute ambigous reads, and as such the trick is hydden in the correct estimation of the priors. Each species has two key-numbers:
+
+1) the number of unique k-mers (which is a charcteristic of the database)
 2) the number of uniquely assigned reads.
 
 Clearly, the ** random ** distribution of reads between the two species is not derived from having the same number of reads among the two, but having the same proportion of
@@ -665,7 +687,7 @@ jupyter notebook /data/Jupyter/Alpha_diversity.ipynb --allow-root --no-browser -
 
 Next, open up a new TERMINAL and Type:
 ```
-ssh -N -L 8888:127.0.0.1:8888 root@212.189.202.106
+ssh -N -L 8888:127.0.0.1:8888 cdonati@212.189.202.106
 ```
 
 Note it holds but doesn't do anything. It means that a tunnel is open.
@@ -679,6 +701,7 @@ press ctrl + c, type y and exit jupyter
 
 
 # Hands-On 4: functional profiling at the community level using HUMAnN 4
+
 The next tool we are going apply represents one unique alternative to perform genetic/functional analysis in microbiome project. As a general concept, HUMAnN 4 solves a easy-to-understand problem, i.e.: it assigns metagenomic reads to functions in UniRef90.
 
 
@@ -691,6 +714,8 @@ cd ~/functional_profiling
 
 #### Step n.2: test that HUMAnN runs properly and have a look at the HUMAnN parameters
 ```
+conda activate humann4
+
 humann_test
 humann_config
 humann -h
@@ -704,11 +729,11 @@ wget ftp://ftp.sra.ebi.ac.uk/vol1/fastq/SRR154/096/SRR15408396/SRR15408396.fastq
 #### Step n.4: RUN humann
 ```
 s="SRR15408396"
-
-metaphlan_params="--index mpa_vOct22_CHOCOPhlAnSGB_202403 -t rel_ab_w_read_stats"
+metaphlan_options="--bowtie2db /data/metaphlan_databases/mpa_vOct22_CHOCOPhlAnSGB_202403 --index mpa_vOct22_CHOCOPhlAnSGB_202403 -t rel_ab_w_read_stats"
 
 ## NOW YOU CAN RUN: ## --nucleotide-database /data/humann_databases/chocophlan/
-## \humann --input ${s}.fastq.gz --output ${s} --threads 8  --count-normalization RPKs --metaphlan-options "${metaphlan_params}"
+## \humann --input ${s}.fastq.gz --output ${s} --threads 8  --count-normalization RPKs --metaphlan-options "${metaphlan_options}"
+
 ## rm -r ${s}/${s}_humann_temp/
 
 ## BUT IT TAKES THREE HOURS... OR YOU CAN RUN:
@@ -755,7 +780,35 @@ less -S merged_pathabundance.tsv
 Press q
 
 # Hands-on n.5 - Metagenome assembly and binning
-## Approach 1: following a protocol step-by-step
+This part of the tutorial introduces one of the foundations of shotgun metagenomics, i.e. reference-free metagenomic assembly.
+
+Practically, this topic is centred around reconstructing good-quality draft genomes from metagenomic samples.
+
+Clearly, the procedure as described hydes some hurdles that is worth name:
+
+1) The reconstruction of genomes or chunks of genomes involves, to simplify, 2 main steps: assembly properly called (1), and binning (2)
+2) The procedure allows to define genomes of species, but *which species each genome is from* is a meaningfull question that is answered *after* the metagenomic assembly procedure.
+3) The procedure allows to detect single genes. This step, a.k.a. genome annotation, is also perormed, usually, later on, but in both cases involves more operations.
+
+All these aspects are normally covered during metagenomic assembly. We will follow, in this tutorial, a dual approach. If you wonder: "Has ever someone put all these pieces into a larger program/wrapper to performed them automatically?" The answer is yes. As the goal of this tutorial is to illustrate some of the key procedures metagenomics involves, we will follow either routes: we will now first show the listed assembly step following the standard protocol step by step; secondly, we will show how these aspects can be all covered via an automatic pipelines, *using NextFlow*. 
+
+## APPROACH 1: THE METAGENOMIC ASSEMBLY PROTOCOL STEP BY STEP
+Following the standard ("by hands") procedure, assembly comprises at least four phases:
+
+1) reconstruction of genomic chunks from metagenomic reads
+2) remapping of metagenomic reads against the obtained chunks
+3) binning
+4) quality control.
+
+In brief, the overall procedure works like this: 1) genomic chunks are **assembled**. This literally means that reads that **end** with a specific sequence of, say, 50 nucleotides, are merged to reads that **start** with **those very 50 nucleotides**. Once this step is iterated for hundreds of thousands of times, it results in the reconstruction of a genome chunk. Practically, however, this phase requires vast algorithmical optimization. In fact it must align billions of reads, deciphering different degree of similarity and in general constituting an enormous graph in which nodes (reads) are link via more or less robust branches (overlaps). This is graph is termed De Brujin graph. 
+
+Most notably, the result of a De Brujin graph is a sequence of nucleotides that represents a fraction of a genome. There are however at least 3 relevant details to keep in mind:
+
+1) The De Brujin graph by definition works determining what is the **consensus sequence** of the reconstructed chunk. Think about it: is a logical consequence of determining overlapping regions despite single nucleotide differences. Is this a problem ? It really depends on your goal. Although assembly is generally a desirable starting point, this problem may arise in fields in which assembly seems the most suitable technique: soil metagenomes, for example, are characterized by a high number of uncharacterized taxa, making you think that "assembly is the best approach to start exploring the soil microbiome". However, soil metagenomes are often floaded with micro-niches and strain-heterogenenity, meaning that assembly may overlook substantial intra-species variation. This results in point 2:
+2) Assebly produces 1 nucleotide sequence, but you don't really known how important this sequence is in the community of interest: it may be the most important species of the entire ecosystem or a low-abundance contaminant. While this might seem more of a technical detail, it gathers the substance of the problem:  
+
+  
+It makes to wonder why the number 2: the reason is that step 3) (binning) can be perform 
 
 #### Step n.1: check everything is set up, download a sample, and run Megahit
 ```
