@@ -39,18 +39,25 @@ We'll use Anaconda, as it is the one requiring less specific knowledge.
 ## WHAT IS CONDA:
 * [A GUIDE ON ANACONDA](https://www.anaconda.com/docs/getting-started/main)
 
-
 Briefly, Anaconda is a widely used open-source platform and distribution for the Python and R programming languages. Purpose: It is designed to simplify package management and deployment for data science, machine learning, and AI projects.
 
 Why it’s used: Instead of downloading thousands of data analysis tools one by one, users install Anaconda, which comes pre-loaded with popular libraries (like NumPy and Pandas) and tools (like Jupyter Notebooks).
 
-First, be sure to deactivate any other conda that is running in your server:
+First, when you log into the server, you are already in a Conda Environment:
+```
+Last login: Tue Jun 16 10:17:30 2026 from 151.38.154.153
+(base) cdonati@mbc1:~$
+```
+
+You see the *(base)* flag? It means that the system recognize your conda ecosystem.
+You can deactivate this:
+
 Type:
 ```
 conda deactivate
 ```
 
-In order to activate the right Anaconda settig, we must just set a series of environmental variables. Type:
+Naturally you may have different anaconda platforms. For instance, we have set up an independent anaconda environment:
 ```
 source /data/anaconda2026/.conda
 ```
@@ -63,12 +70,14 @@ which python
 which conda
 ```
 
-Did it return:
+It should return:
 ```
+(base) cdonati@mbc1:~$ which python
 /data/anaconda2026/bin/python
+
+(base) cdonati@mbc1:~$ which conda
 /data/anaconda2026/bin/conda
 ```
-?
 
 ## Step n.1: check if your environments are all set up and ready
 ```
@@ -77,7 +86,7 @@ conda info --envs
 
 You should see:
 ```
-(base) pmanghi@mbc1:/data/cdonati$ conda info --envs
+(base) cdonati@mbc1:/data/cdonati$ conda info --envs
 # conda environments:
 #
 base                  *  /data/anaconda2026
@@ -93,7 +102,7 @@ tax_profiling            /data/anaconda2026/envs/tax_profiling
 Did it work ?
 
 ## HOW DO WE RECREATE ANYTHING OF THAT?
-In case it doesn't work, THE FOLLOWING PART is to create the same exact set of environment from scratch. is very easy to install all Conda environments.
+In case it doesn't work, the following part can be used to recreate the same exact set of environment from scratch. As you'll see, it is very easy to install all Conda environments.
 
 First ensure that you have entered the Conda ecosystem:
 ```
@@ -101,25 +110,25 @@ conda deactivate
 source /data/anaconda2026/.conda
 ```
 
-Then, you can execute the following steps:
-0) Explain how to search for correct program versions:
+Then you can execute the following steps:
+0) Be sure the system knows where to search for correct program versions:
 ```
 conda config --add channels defaults
 conda config --add channels bioconda
 conda config --add channels conda-forge
 ```
  
-1) create the environment for Data Preprocessing:
+1) To create the environment for Data Preprocessing, type:
 ```
 conda create -n preprocessing -c bioconda -c conda-forge trimmomatic bowtie2 samtools
 ```
 
-2) create the environment for the Assembly (the genome reconstruction):
+2) To create the environment for the Assembly (the genome reconstruction), type:
 ```
 conda create -n assembly -c bioconda -c conda-forge megahit bowtie2 metabat2 checkm2 samtools
 ```
 
-3) Create one environment for MetaPhlAn and for Kraken/Bracken (taxonomic profiling)
+3) To create one environment for MetaPhlAn and for Kraken/Bracken (taxonomic profiling), type:
 ```
 conda create -n tax_profiling -c bioconda -c conda-forge metaphlan kraken bracken
 
@@ -127,6 +136,7 @@ mkdir -p /data/metaphlan_databases
 
 metaphlan --install --db_dir /data/metaphlan_databases/ -x mpa_vJan21_CHOCOPhlAnSGB_202103
 metaphlan --install --db_dir /data/metaphlan_databases/ -x mpa_vOct22_CHOCOPhlAnSGB_202403
+
 wget https://genome-idx.s3.amazonaws.com/kraken/k2_standard_08gb_20250402.tar.gz
 mkdir -p /data/kraken_DB && tar -xvzf k2_standard_08gb_20250402.tar.gz -C /data/kraken_DB
 
@@ -135,13 +145,13 @@ git clone https://github.com/jenniferlu717/KrakenTools.git
 chmod +x KrakenTools/*
 ```
 
-Create one environment for running jupiter notebooks with analyses in R:
+4) To create one environment for running jupiter notebooks with analyses in R, type:
 ```
 4) conda create -n r_notebooks -c bioconda -c conda-forge r-base=4.3 jupyter r-irkernel r-microeco r-tidyverse
 
 ```
 
-5) Create one environment for HUMAnN4 (functional profiling of communities)
+5) To create one environment for HUMAnN4 (functional profiling of communities), type:
 ```
 conda create -n humann4 -c bioconda python=3.12
 conda activate humann4
@@ -162,10 +172,13 @@ Normally, you should execute the last three commands AFTER:
 ```
 DON'T: we did it already.
 
-6) Create one environment for Genomic Annotations
+6) To create one environment for Genomic Annotations (using the software Bakta), type:
 ```
 conda create -n genome_annotation -c bioconda bakta
 ```
+
+## HOW DOES THIS WORK PRACTICALLY?
+
 
 To understand how this works, Type:
 ```
