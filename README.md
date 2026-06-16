@@ -804,10 +804,19 @@ In brief, the overall procedure works like this: 1) genomic chunks are **assembl
 
 Most notably, the result of a De Brujin graph is a sequence of nucleotides that represents a fraction of a genome. There are however at least 3 relevant details to keep in mind:
 
-1) The De Brujin graph by definition works determining what is the **consensus sequence** of the reconstructed chunk. Think about it: is a logical consequence of determining overlapping regions despite single nucleotide differences. Is this a problem ? It really depends on your goal. Although assembly is generally a desirable starting point, this problem may arise in fields in which assembly seems the most suitable technique: soil metagenomes, for example, are characterized by a high number of uncharacterized taxa, making you think that "assembly is the best approach to start exploring the soil microbiome". However, soil metagenomes are often floaded with micro-niches and strain-heterogenenity, meaning that assembly may overlook substantial intra-species variation. This results in point 2:
-2) Assebly produces 1 nucleotide sequence, but you don't really known how important this sequence is in the community of interest: it may be the most important species of the entire ecosystem or a low-abundance contaminant. While this might seem more of a technical detail, it gathers the substance of the problem:  
+1) The De Brujin graph by definition works determining what is the **consensus sequence** of the reconstructed chunk. Think about it: is a logical consequence of determining overlapping regions despite single nucleotide differences. Is this a problem ? It really depends on your goal. Although assembly is generally a desirable starting point, this problem may arise in fields in which assembly seems the most suitable technique: soil metagenomes, for example, are characterized by a high number of uncharacterized taxa, making you think that "assembly is the best approach to start exploring the soil microbiome". However, soil metagenomes are often floaded with micro-niches and strain-heterogenenity, meaning that assembly may overlook substantial intra-species variation. This results in:
+2) Assembly produces 1 nucleotide sequence, but you don't really known how important this sequence is in the community: it may be the most important species of the entire ecosystem or a low-abundance contaminant.
+3) The produced sequence, termed contigs (for "contigous fragments"), are not genomes. In fact they are rather shorter. Contigs can be as long as half of a genome, or be very short, down to a few hundreds nucleotides.
 
-  
+Conceptually, reconstruction of contigs is followed by binning those contigs into genomes. In fact, binning is simply the procedure of "binning together" contigs from the same microbial species. While this looks intuituive, following from points 1-3 you may understand while this is not trivial. In fact, the reason why we perform also step n. 2 ("remapping of metagenomic reads against the obtained chunks") is that to bin contigs into genomes it is necessary to have the results from this remapping.
+
+Binning means collecting toghether pieces of genome reconstructed from assembly, assuming that they belong to the same species. There are two popular algoritmical strategies to do so, which are normally combined: 
+
+a) frequency of tetra-nucleotides (TNF): each combination of ACTG (256 in total) is counted. The frequency of such combination is informative, meaning that it tend to gather information such as codon usage, restriction sites
+b) co-abundant chunks: this part uses the results from the bowtie2 remapping, telling us how deeply are covered genomic chunks. In binning this is highly informative: two moieties from the genome of a single species are clearly present with the same number of copies: n copies each, for n copies of the species. This implies that, mapping metagenomic reads onto all contigs, the two moieties will absorb approximately the same number of reads.
+
+Binning normally combines these two strategies in a single similarity metric, that is then use to perform a hierarchical clustering to tell chunks from the same species apart. 
+    
 It makes to wonder why the number 2: the reason is that step 3) (binning) can be perform 
 
 #### Step n.1: check everything is set up, download a sample, and run Megahit
