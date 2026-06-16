@@ -14,6 +14,10 @@
 ```
 ssh YOUR-NAME@212.189.202.106
 ```
+In my case, this is:
+```
+ssh cdonati@212.189.202.106
+```
 
 Press Enter
 Check our yotu current location
@@ -93,14 +97,13 @@ conda create -n assembly -c bioconda -c conda-forge megahit bowtie2 metabat2 che
 ```
 conda create -n tax_profiling -c bioconda -c conda-forge metaphlan kraken bracken
 
-mkdir -p ~/database/
-cd ~/database/
+mkdir -p /data/metaphlan_databases
 
-metaphlan --install --db_dir metaphlan_databases --idx mpa_vJan21_CHOCOPhlAnSGB_202103
+metaphlan --install --db_dir /data/metaphlan_databases/ --idx mpa_vJan21_CHOCOPhlAnSGB_202103
 wget https://genome-idx.s3.amazonaws.com/kraken/k2_standard_08gb_20250402.tar.gz
-mkdir -p kraken_databases && tar -xvzf k2_standard_08gb_20250402.tar.gz -C kraken_databases
+mkdir -p /data/kraken_DB && tar -xvzf k2_standard_08gb_20250402.tar.gz -C /data/kraken_DB
 
-cd ../src
+cd /data/
 git clone https://github.com/jenniferlu717/KrakenTools.git
 chmod +x KrakenTools/*
 ```
