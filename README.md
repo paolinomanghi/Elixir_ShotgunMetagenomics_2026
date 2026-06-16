@@ -99,7 +99,8 @@ conda create -n tax_profiling -c bioconda -c conda-forge metaphlan kraken bracke
 
 mkdir -p /data/metaphlan_databases
 
-metaphlan --install --db_dir /data/metaphlan_databases/ --idx mpa_vJan21_CHOCOPhlAnSGB_202103
+metaphlan --install --db_dir /data/metaphlan_databases/ -x mpa_vJan21_CHOCOPhlAnSGB_202103
+metaphlan --install --db_dir /data/metaphlan_databases/ -x mpa_vOct22_CHOCOPhlAnSGB_202403
 wget https://genome-idx.s3.amazonaws.com/kraken/k2_standard_08gb_20250402.tar.gz
 mkdir -p /data/kraken_DB && tar -xvzf k2_standard_08gb_20250402.tar.gz -C /data/kraken_DB
 
@@ -121,7 +122,6 @@ conda activate humann4
 conda config --add channels biobakery
 conda install humann=4.0.0a1 -c biobakery -c bioconda -c conda-forge
 conda install metaphlan=4.1 -c bioconda
-#### metaphlan --install --index mpa_vOct22_CHOCOPhlAnSGB_202403
  
 #### humann_databases --download chocophlan full humann_databases ## DON'T 
 #### humann_databases --download uniref uniref90_ec_filtered_diamond humann_databases ## DON'T
