@@ -37,7 +37,8 @@ similar goals: having an infrastructure that coordinates multiple softwares with
 We'll use Anaconda, as it is the one requiring less specific knowledge.
 
 ## WHAT IS CONDA:
-* [A GUIDE ON ANACONDA](#https://www.anaconda.com/docs/getting-started/main)
+* [A GUIDE ON ANACONDA](https://www.anaconda.com/docs/getting-started/main)
+
 
 Briefly, Anaconda is a widely used open-source platform and distribution for the Python and R programming languages. Purpose: It is designed to simplify package management and deployment for data science, machine learning, and AI projects.
 
