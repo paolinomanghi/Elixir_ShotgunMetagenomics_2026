@@ -9,7 +9,7 @@
   * [Approach 2: Trying Nextflow pipelines](#user-content-approach-2-trying-nextflow-pipelines)
 - [BONUS: Hands-on n.6 - Taxonomic profiling beyond the level of species using StrainPhlAn](#user-content-bonus-hands-on-n6---taxonomic-profiling-beyond-the-level-of-species-using-strainphlan)
 
-# Hands-on n.1 - Preprocessing of standard metagenomic data
+# Hands-on n.0 - Understading how to work on a public server using Conda
 ## Step n.0: log in into your machine and explore the configuration
 ```
 ssh YOUR-NAME@212.189.202.106
@@ -35,6 +35,20 @@ There are several ways to achieve this situation, the most widely adopted are Do
 similar goals: having an infrastructure that coordinates multiple softwares with multiple version able so that an entire lab can work simultanously.
 
 We'll use Anaconda, as it is the one requiring less specific knowledge.
+
+## WHAT IS CONDA:
+* [A GUIDE ON ANACONDA](#https://www.anaconda.com/docs/getting-started/main)
+
+Briefly, Anaconda is a widely used open-source platform and distribution for the Python and R programming languages. Purpose: It is designed to simplify package management and deployment for data science, machine learning, and AI projects.
+
+Why it’s used: Instead of downloading thousands of data analysis tools one by one, users install Anaconda, which comes pre-loaded with popular libraries (like NumPy and Pandas) and tools (like Jupyter Notebooks).
+
+First, be sure to deactivate any other conda that is running in your server:
+Type:
+```
+conda deactivate
+```
+
 In order to activate the right Anaconda settig, we must just set a series of environmental variables. Type:
 ```
 source /data/anaconda2026/.conda
@@ -61,21 +75,32 @@ conda info --envs
 ```
 
 You should see:
-
 ```
+(base) pmanghi@mbc1:/data/cdonati$ conda info --envs
 # conda environments:
 #
-base                 * /data/anaconda2026
-assembly               /data/anaconda2026/envs/assembly
-genome_annotation      /data/anaconda2026/envs/genome_annotation
-humann4                /data/anaconda2026/envs/humann4
-preprocessing          /data/anaconda2026/envs/preprocessing
-tax_profiling          /data/anaconda2026/envs/tax_profiling
+base                  *  /data/anaconda2026
+assembly                 /data/anaconda2026/envs/assembly
+genome_annotation        /data/anaconda2026/envs/genome_annotation
+humann4                  /data/anaconda2026/envs/humann4
+preprocessing            /data/anaconda2026/envs/preprocessing
+r_notebooks              /data/anaconda2026/envs/r_notebooks
+tax_profiling            /data/anaconda2026/envs/tax_profiling
+
 ```
 
 Did it work ?
 
-In case it doesn't work is very easy to install all Conda environments.
+## HOW DO WE RECREATE ANYTHING OF THAT?
+In case it doesn't work, THE FOLLOWING PART is to create the same exact set of environment from scratch. is very easy to install all Conda environments.
+
+First ensure that you have entered the Conda ecosystem:
+```
+conda deactivate
+source /data/anaconda2026/.conda
+```
+
+Then, you can execute the following steps:
 0) Explain how to search for correct program versions:
 ```
 conda config --add channels defaults
@@ -122,15 +147,19 @@ conda activate humann4
 conda config --add channels biobakery
 conda install humann=4.0.0a1 -c biobakery -c bioconda -c conda-forge
 conda install metaphlan=4.1 -c bioconda
- 
-#### humann_databases --download chocophlan full humann_databases ## DON'T 
-#### humann_databases --download uniref uniref90_ec_filtered_diamond humann_databases ## DON'T
-#### humann_databases --download utility_mapping full humann_databases ## DON'T
 
 humann_config --update database_folders nucleotide /data/humann_databases/chocophlan/
 humann_config --update database_folders protein /data/humann_databases/uniref/
 humann_config --update database_folders utility_mapping /data/humann_databases/utility_mapping/
 ```
+
+Normally, you should execute the last three commands AFTER:
+```
+#### humann_databases --download chocophlan full humann_databases
+#### humann_databases --download uniref uniref90_ec_filtered_diamond humann_databases
+#### humann_databases --download utility_mapping full humann_databases
+```
+DON'T: we did it already.
 
 6) Create one environment for Genomic Annotations
 ```
@@ -141,23 +170,25 @@ To understand how this works, Type:
 ```
 conda activate tax_profiling
 ```
-See the (tax_profiling) string in the bottom-left corner?
 
+See the (tax_profiling) string in the bottom-left corner?
 Now type:
+
 ```
 which metaphlan; which kraken; which bracken
 conda deactivate
 which metaphlan; which kraken; which bracken
 ```
 
-As you can see, the programs inside each environment are protected, meaning that they are visible only in that environment to not interefe with other installations.
+As you can see, the programs inside each environment are protected, meaning that they are visible only in that environment to not interfere with other installations.
 
+# Hands-on n.1 - Preprocessing of standard metagenomic data
 ## Step n.1: raw data pre-processing on fastq example files "seq_1.fastq.gz" and "seq_2.fastq.gz" from https://github.com/biobakery/biobakery/wiki/kneaddata
 In this step, we just download a toy fastq sample. Normally, this step may take a few weeks!
 
 ```
-mkdir preprocessing
-cd preprocessing
+mkdir ~/preprocessing
+cd ~/preprocessing
 
 wget https://github.com/biobakery/kneaddata/files/4703820/input.zip
 unzip input.zip
@@ -242,7 +273,7 @@ Now we'll just align the fastq against the humann h
 Run bowtie alignment against the human genome:
 ```
 ##VERSION 4 HOURS LONG:
-## bowtie2-build ${human_gen_bowtie_indexes/_genomic/.fna} /data/human_genome/GCF_009914755.1_T2T-CHM13v2.0 ### DON'T RUN IT: IT TAKES A FEW HOURS TO BE EXECUTED
+## bowtie2-build ${human_gen_bowtie_indexes/_genomic/.fna} /data/human_genome/GCF_009914755.1_T2T-CHM13v2.0 ## DON'T RUN IT: IT TAKES A FEW HOURS TO BE EXECUTED
 
 bowtie2 -x ${human_gen_bowtie_indexes} -1 ${s}_filtered_1.fastq -2 ${s}_filtered_2.fastq -S ${s}.sam --very-sensitive-local -p 8
 ```
@@ -406,8 +437,8 @@ positional arguments:
                         IMPORTANT: the type of input needs to be specified with --input_type
 
 [...]
-```
 
+```
 MetaPhlAn can take multiple file types as input, and outputs different files. In short, when run on metagenomic reads,
 the procedure entails:
 
@@ -418,7 +449,6 @@ estimated by the coverage on the marker genes
 4) grouping of the taxonomic level, starting from species-level, up to the kingdom
 
 We will start setting MetaPhlAn database paths and running it on the gingival plaque metagenomic sample:
- 
 ```
 mpa_db="/data/metaphlan_databases/"
 db_version="mpa_vJan21_CHOCOPhlAnSGB_202103"
@@ -475,8 +505,8 @@ algorithm, maintain a count of reads below 1000. Despite this potential pitfall,
 
 Let's now create the folder and run the two softwares:
 ```
-mkdir -p ../Kraken_Bracken_taxonomic_profiling
-cd ../Kraken_Bracken_taxonomic_profiling
+mkdir -p ~/Kraken_Bracken_taxonomic_profiling
+cd ~/Kraken_Bracken_taxonomic_profiling
 ```
 
 Let us have a look a Kraken parameters:
@@ -637,10 +667,12 @@ press ctrl + c, type y and exit jupyter
 # Hands-On 4: functional profiling at the community level using HUMAnN 4
 The next tool we are going apply represents one unique alternative to perform genetic/functional analysis in microbiome project. As a general concept, HUMAnN 4 solves a easy-to-understand problem, i.e.: it assigns metagenomic reads to functions in UniRef90.
 
+
+
 #### Step n.1: Get into the right directory & install download the necessary files
 ```
-mkdir functional_profiling
-cd functional_profiling
+mkdir -p ~/functional_profiling
+cd ~/functional_profiling
 ```
 
 #### Step n.2: test that HUMAnN runs properly and have a look at the HUMAnN parameters
