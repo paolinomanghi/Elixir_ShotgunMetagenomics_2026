@@ -20,7 +20,7 @@ ssh cdonati@212.189.202.106
 ```
 
 Press Enter
-Check our yotu current location
+Check our your current location
 ```
 pwd
 ```
@@ -124,13 +124,12 @@ conda create -n preprocessing -c bioconda -c conda-forge trimmomatic bowtie2 sam
 
 2) To create the environment for the Assembly (the genome reconstruction), type:
 ```
-conda create -n assembly -c bioconda -c conda-forge megahit bowtie2 metabat2 checkm2 samtools
+conda create -n assembly -c bioconda -c conda-forge megahit bowtie2 metabat2 checkm2 samtools biopython
 ```
 
 3) To create one environment for MetaPhlAn and for Kraken/Bracken (taxonomic profiling), type:
 ```
 conda create -n tax_profiling -c bioconda -c conda-forge metaphlan kraken bracken
-
 mkdir -p /data/metaphlan_databases
 
 metaphlan --install --db_dir /data/metaphlan_databases/ -x mpa_vJan21_CHOCOPhlAnSGB_202103
@@ -308,10 +307,11 @@ Let's thus assign the bowtie2 indexes to a variable:
 ```
 human_gen_bowtie_indexes="/data/human_genome/GCF_009914755.1_T2T-CHM13v2.0"
 ```
+
 Now we'll just align the fastq against the humann h
 Run bowtie alignment against the human genome:
 ```
-##VERSION 4 HOURS LONG:
+## VERSION 4 HOURS LONG:
 ## bowtie2-build ${human_gen_bowtie_indexes/_genomic/.fna} /data/human_genome/GCF_009914755.1_T2T-CHM13v2.0 ## DON'T RUN IT: IT TAKES A FEW HOURS TO BE EXECUTED
 
 bowtie2 -x ${human_gen_bowtie_indexes} -1 ${s}_filtered_1.fastq -2 ${s}_filtered_2.fastq -S ${s}.sam --very-sensitive-local -p 8
@@ -533,11 +533,9 @@ the species.
 Albeit pratically this methodology works, and is the de-facto standard for non-humann communities, precautions must be taken when extensively running Bracken:
 
 1) The resulting number of species with standard parameters is notoriously too-high (based on consideration on human being, in which we know precisely what to expect)
-2) In environmental samples, the Bracken rate of False Positives may be perceived as sensitivity (since finding a lot of species in an environment which should have a lot of species
-seems like the right thing: in reality the great majority of species found in such environment remains uncharacterized also by Kraken).
+2) In environmental samples, the Bracken rate of False Positives may be perceived as sensitivity (since finding a lot of species in an environment which should have a lot of species seems like the right thing: in reality the great majority of species found in such environment remains uncharacterized also by Kraken).
 
-When running Bracken, it is therefore practically advised to apply an additional filter at > 1000 reads, meaning lowering to zero everything that, after the Baysian statistical
-algorithm, maintain a count of reads below 1000. Despite this potential pitfall, Bracken remains the standard for profiling environmental or non-common communities (for example marine metagenomes or yet-to-be-surveyed animals).
+When running Bracken, it is therefore practically advised to apply an additional filter at > 1000 reads, meaning lowering to zero everything that, after the Baysian statistical algorithm, maintain a count of reads below 1000. Despite this potential pitfall, Bracken remains the standard for profiling environmental or non-common communities (for example marine metagenomes or yet-to-be-surveyed animals).
 
 Let's now create the folder and run the two softwares:
 ```
@@ -630,8 +628,7 @@ bracken -d /data/kraken_DB/ -i `basename ${s%.fasta.gz}`.kraken2_report.txt -o `
 done
 ```
 
-Similarly to what done for MetaPhlAn, we will now merge all the Bracken outputs into a MetaPhlAn-like taxonomy, to make them comparable. We will make use
-of the suite KrakenTools, which we have previously downloaded from github.
+Similarly to what done for MetaPhlAn, we will now merge all the Bracken outputs into a MetaPhlAn-like taxonomy, to make them comparable. We will make use of the suite KrakenTools, which we have previously downloaded from github.
 
 ```
 for s in *.bracken_report.txt; do  /data/KrakenTools/kreport2mpa.py --display-header -r ${s} -o ${s%.txt}.mpa.tsv; done
@@ -641,7 +638,7 @@ This last command has created files in a format that we can handle very easily. 
 ```
 cat SRS014470-Tongue_dorsum.bracken_report.mpa.tsv
 ```
-See ?
+See?
 
 ```
 #Classification SRS014470-Tongue_dorsum.bracken_report.txt
@@ -704,15 +701,13 @@ press ctrl + c, type y and exit jupyter
 
 The next tool we are going apply represents one unique alternative to perform genetic/functional analysis in microbiome project. As a general concept, HUMAnN 4 solves a easy-to-understand problem, i.e.: it assigns metagenomic reads to functions in UniRef90.
 
-
-
-#### Step n.1: Get into the right directory & install download the necessary files
+## Step n.1: Get into the right directory & install download the necessary files
 ```
 mkdir -p ~/functional_profiling
 cd ~/functional_profiling
 ```
 
-#### Step n.2: test that HUMAnN runs properly and have a look at the HUMAnN parameters
+## Step n.2: test that HUMAnN runs properly and have a look at the HUMAnN parameters
 ```
 conda activate humann4
 
@@ -721,12 +716,12 @@ humann_config
 humann -h
 ```
 
-#### Step n.3: get a sample from EBI
+## Step n.3: get a sample from EBI
 ```
 wget ftp://ftp.sra.ebi.ac.uk/vol1/fastq/SRR154/096/SRR15408396/SRR15408396.fastq.gz
 ```
 
-#### Step n.4: RUN humann
+## Step n.4: RUN humann
 ```
 s="SRR15408396"
 metaphlan_options="--bowtie2db /data/metaphlan_databases/mpa_vOct22_CHOCOPhlAnSGB_202403 --index mpa_vOct22_CHOCOPhlAnSGB_202403 -t rel_ab_w_read_stats"
@@ -739,31 +734,40 @@ metaphlan_options="--bowtie2db /data/metaphlan_databases/mpa_vOct22_CHOCOPhlAnSG
 ## BUT IT TAKES THREE HOURS... OR YOU CAN RUN:
 mkdir -p ${s}
 
-cp /data/course_backup/4_humann/${s}/${s}_2_genefamilies.tsv ${s}/${s}_genefamilies.tsv
-cp /data/course_backup/4_humann/${s}/${s}_4_pathabundance.tsv ${s}/${s}_pathabundance.tsv
+cp /data/pmanghi/functional_profiling/${s}/${s}_2_genefamilies.tsv ${s}/${s}_genefamilies.tsv
+cp /data/pmanghi/functional_profiling/${s}/${s}_4_pathabundance.tsv ${s}/${s}_pathabundance.tsv
 ```
 
-#### Step n.5: Regrouping genes to other functional categories
+## Step n.5: Regrouping genes to other functional categories
 ```
 humann_regroup_table -i ${s}/${s}_genefamilies.tsv -o ${s}/${s}_pfam.tsv --groups uniref90_pfam
 ```
 
-#### Step n.6: Run HUMAnN on a second sample
+While executing, it will communicate some of information of the conversion from UniRef90 to PFAM:
+```
+(humann4) cdonati@mbc1:/data/cdonati/functional_profiling# humann_regroup_table -i ${s}/${s}_genefamilies.tsv -o ${s}/${s}_pfam.tsv --groups uniref90_pfam
+Loading table from: SRR15408396/SRR15408396_genefamilies.tsv
+  Treating SRR15408396/SRR15408396_genefamilies.tsv as stratified output, e.g. ['UniRef90_Q45125', 's__Parabacteroides_distasonis.t__SGB1934']
+Loading mapping file from: /data/humann_databases/utility_mapping/map_pfam_uniref90.txt.gz
+  This is a large file, one moment please...
+Original Feature Count: 165701; Grouped 1+ times: 80349 (48.5%); Grouped 2+ times: 24801 (15.0%)
+(humann4) cdonati@mbc1:/data/cdonati/functional_profiling#
+```
+
+## Step n.6: Run HUMAnN on a second sample
 ```
 s="SRR15408398"
 
-## SAME:
 ## wget ftp://ftp.sra.ebi.ac.uk/vol1/fastq/SRR154/098/SRR15408398/SRR15408398.fastq.gz
-
-## \humann --input ${s}.fastq.gz --output ${s} --threads 8 --count-normalization RPKs --metaphlan-options "${metaphlan_params}"
+## \humann --input ${s}.fastq.gz --output ${s} --threads 8  --count-normalization RPKs --metaphlan-options "${metaphlan_options}"
 ## rm -r ${s}/${s}_humann_temp/
 
-## FOR NOW, RUN:
-mkdir ${s}
-cp /data/course_backup/4_humann/${s}/${s}_4_pathabundance.tsv ${s}/${s}_pathabundance.tsv
+##
+mkdir -p ${s}
+cp /data/pmanghi/functional_profiling/${s}/${s}_4_pathabundance.tsv ${s}/${s}_pathabundance.tsv
 ```
 
-#### Step n.7: Merge together community profiles under different ontologies
+## Step n.7: Merge together community profiles under different ontologies
 ```
 mkdir -p merged
 
@@ -773,11 +777,19 @@ cp SRR15408398/SRR15408398_pathabundance.tsv merged/
 humann_join_tables -i merged -o merged_pathabundance.tsv --file_name pathabundance
 ```
 
-Visualize the merged table:
+You now see:
 ```
-less -S merged_pathabundance.tsv 
+(humann4) cdonati@mbc1:/data/cdonati/functional_profiling# humann_join_tables -i merged -o merged_pathabundance.tsv --file_name pathabundance
+Gene table created: /data/cdonati/functional_profiling/merged_pathabundance.tsv
+(humann4) root@mbc1:/data/cdonati/functional_profiling#
+```
+
+You can have a look at this table:
+```
+(humann4) cdonati@mbc1:/data/cdonati/functional_profiling# less -S merged_pathabundance.tsv
 ```
 Press q
+
 
 # Hands-on n.5 - Metagenome assembly and binning
 This part of the tutorial introduces one of the foundations of shotgun metagenomics, i.e. reference-free metagenomic assembly.
@@ -819,27 +831,48 @@ Binning normally combines these two strategies in a single similarity metric, th
     
 The last step is quality-control: clearly, the above procedure is not granted to produce perfect genomes. The binned contigs may be a) binned wrongly or simply b) too few to form a decent genome. Practically, what is normally done is that bins are generated, and suitable genomes are determined among these by screening them with dedicated softwares.
 
-#### Step n.1: check everything is set up, download a sample, and run Megahit
-```
-cd ~
+## Step n.1: Start Metagenomic Assembly
 
-## conda create -n <megahit> -c bioconda megahit ## DON'T DO IT. WE DID ALREADY
+We will start by activating the right environment. We have previously created it, is called *assembly*:
+```
+mkdir ~/assembly
+cd ~/assembly
+
 conda deactivate
-conda activate megahit
-
-mkdir 5_assembly
-cd 5_assembly
-
-wget ftp://ftp.sra.ebi.ac.uk/vol1/fastq/SRR341/SRR341725/SRR341725_[12].fastq.gz
+conda activate assembly
 ```
 
-Let's have a look at the megahit parameters !
+## Step n.2: check if software Megahit is present and run it:
 ```
 megahit -h
 ```
 
-Let's start with the assembly
+See?
 ```
+(assembly) cdonati@mbc1:/data/cdonati/assembly$ megahit -h
+MEGAHIT v1.2.9
+
+contact: Dinghua Li <voutcn@gmail.com>
+
+Usage:
+  megahit [options] {-1 <pe1> -2 <pe2> | --12 <pe12> | -r <se>} [-o <out_dir>]
+
+  Input options that can be specified for multiple times (supporting plain text and gz/bz2 extensions)
+    -1                       <pe1>          comma-separated list of fasta/q paired-end #1 files, paired with files in <pe2>
+    -2                       <pe2>          comma-separated list of fasta/q paired-end #2 files, paired with files in <pe1>
+    --12                     <pe12>         comma-separated list of interleaved fasta/q paired-end files
+    -r/--read                <se>           comma-separated list of fasta/q single-end files
+
+Optional Arguments:
+  Basic assembly options:
+    --min-count              <int>          minimum multiplicity for filtering (k_min+1)-mers [2]
+
+```
+
+We won't run it. It takes a couple of hours. In fact is by far the time-consuming step in assembly.
+```
+wget ftp://ftp.sra.ebi.ac.uk/vol1/fastq/SRR341/SRR341725/SRR341725_[12].fastq.gz
+
 s="SRR341725"
 ## MEGAHIT WILL TAKE A FEW HOURS:
 ## megahit -1 ${s}_1.fastq.gz -2 ${s}_2.fastq.gz -o ${s}.megahit_asm -t 8
@@ -847,33 +880,21 @@ s="SRR341725"
 ## FOR NOW WE CAN COPY THE RESULTS FROM MEGAHIT
 mkdir -p ${s}.megahit_asm/
 
-cp /data/course_backup/5_assembly/${s}.megahit_asm/final.contigs.fa  ${s}.megahit_asm/
-cp /data/course_backup/5_assembly/${s}.megahit_asm/contigs.fasta  ${s}.megahit_asm/
+cp /data/pmanghi/assembly/${s}.megahit_asm/final.contigs.fa ${s}.megahit_asm/
+cp /data/pmanghi/assembly/${s}.megahit_asm/contigs.fasta ${s}.megahit_asm/
 
+
+QUESTE QUATTRO RIGHE LE VOLGLIO ELIMINARE
 ## WE ALSO NEED TWO CUSTOM SCRIPT:
-cp /data/course_backup/5_assembly/filter_contigs.py .
-cp /data/course_backup/5_assembly/megahit2spades.py .
+cp /data/pmanghi/assembly/filter_contigs.py .
+cp /data/pmanghi/assembly/megahit2spades.py .
 
-python megahit2spades.py ${s}.megahit_asm/final.contigs.fa ${s}.megahit_asm/contigs.fasta
-python filter_contigs.py ${s}.megahit_asm/contigs.fasta ${s}.megahit_asm/contigs_filtered.fasta
+##python megahit2spades.py ${s}.megahit_asm/final.contigs.fa ${s}.megahit_asm/contigs.fasta
+##python filter_contigs.py ${s}.megahit_asm/contigs.fasta ${s}.megahit_asm/contigs_filtered.fasta
 ```
 
-#### Step n.2: Binning, i.e. grouping assemblies into genomes using MetaBat2
+## Step n.3: Binning, i.e. grouping assemblies into genomes using MetaBat2
 ```
-cd ~
-
-mkdir 6_MAG-reconstruction
-cd 6_MAG-reconstruction
-
-conda deactivate 
-## conda create -n <metabat2> -c bioconda metabat2 ## DON'T DO IT. WE DID ALREADY
-conda activate metabat2
-
-## conda install -c bioconda <bowtie2> ## DON'T DO IT. WE DID ALREADY
-## conda install -c bioconda <samtools> ## DON'T DO IT. WE DID ALREADY
-
-s="SRR341725"
-
 cp ../5_assembly/${s}.megahit_asm/contigs_filtered.fasta ./
 cp ../5_assembly/${s}_1.fastq.gz ./
 cp ../5_assembly/${s}_2.fastq.gz ./
