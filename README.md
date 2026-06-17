@@ -1084,8 +1084,45 @@ cd ~/annotations
 
 for genome in ../assembly/SRR341725_bins_filtered/*.fa; do bakta --db /data/bakta_database/db-light --threads 4 --skip-sorf --skip-crispr --skip-trna --skip-tmrna --skip-rrna ${genome}; done
 ```
+Check Bakta results:
+```
+(genome_annotation) cdonati@mbc1:/data/cdonati/annotations# cat -S bin.18.tsv
+# Annotated with Bakta
+# Software: v1.12.0
+# Database: v6.0, light
+# DOI: 10.1099/mgen.0.000685
+# URL: github.com/oschwengers/bakta
+#Sequence Id    Type    Start   Stop    Strand  Locus Tag       Gene    Product DbXrefs
+contig_1        cds     769     1284    -       GAANHE_00001            hypothetical protein    
+contig_1        cds     1271    2353    -       GAANHE_00002            HNH endonuclease        SO:0001217, UniRef:UniRef50_A0A416ESJ6
+contig_2        cds     137     658     -       GAANHE_00003            FMN reductase [NAD(P)H] SO:0001217, UniRef:UniRef50_A0A380LQ39
+contig_2        cds     696     1229    -       GAANHE_00004            DUF based on E rectale Gene description SO:0001217, UniRef:UniRef50_C4ZAI0
+contig_2        cds     1251    1709    -       GAANHE_00005            DUF4367 domain-containing protein       SO:0001217, UniRef:UniRef50_D4MXY1
+contig_2        cds     1812    2237    -       GAANHE_00006            ABC transporter permease        SO:0001217, UniRef:UniRef50_A0A1Q9JR67
+contig_2        cds     2465    3847    +       GAANHE_00007            Argininosuccinate lyase SO:0001217, UniRef:UniRef50_A0A3R6QUT5
+contig_2        cds     3861    5582    +       GAANHE_00008            Lipoprotein     SO:0001217, UniRef:UniRef50_A0A1Q9JR25
+contig_2        cds     5987    6142    -       GAANHE_00009            hypothetical protein    
+contig_2        cds     6227    6571    -       GAANHE_00010            hypothetical protein    SO:0001217, UniRef:UniRef50_A0A173RSC7
+contig_2        cds     6920    7234    +       GAANHE_00011    yqjI    Transcriptional regulator YqjI  SO:0001217, UniRef:UniRef50_A0A173RSA6
+contig_3        cds     112     1215    -       GAANHE_00012            Transposase     SO:0001217, UniRef:UniRef50_A0A0M6WZX4
+contig_3        cds     1714    1914    -       GAANHE_00013            hypothetical protein    
+contig_3        cds     1926    2345    -       GAANHE_00014            hypothetical protein    PFAM:PF01381.28, PFAM:PF12844.13
+contig_4        cds     283     1512    -       GAANHE_00015            Argininosuccinate synthase      SO:0001217, UniRef:UniRef50_C4Z4C1
+contig_4        cds     1813    2853    +       GAANHE_00016            N-acetyl-gamma-glutamyl-phosphate reductase     SO:0001217, UniRef:UniRef50_C4Z4C2
+contig_4        cds     2880    4106    +       GAANHE_00017    argJ    Arginine biosynthesis bifunctional protein ArgJ SO:0001217, UniRef:UniRef50_F7V5T9
+contig_4        cds     4175    5107    +       GAANHE_00018            Acetylglutamate kinase  SO:0001217, UniRef:UniRef50_A0A7C7V1P3
+contig_4        cds     5109    6302    +       GAANHE_00019            Acetylornithine aminotransferase        SO:0001217, UniRef:UniRef50_A0A173TPG2
+```
+
+While, if you need the sequence:
+```
+(genome_annotation) cdonati@mbc1:/data/cdonati/annotations# less -S bin.18.faa 
+```
 
 ## Step n.2: Determine which species the bins belong to
 ```
+
 ```
+
+
 
