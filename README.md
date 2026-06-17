@@ -882,35 +882,97 @@ mkdir -p ${s}.megahit_asm/
 
 cp /data/pmanghi/assembly/${s}.megahit_asm/final.contigs.fa ${s}.megahit_asm/
 cp /data/pmanghi/assembly/${s}.megahit_asm/contigs.fasta ${s}.megahit_asm/
+```
 
+Type:
+```
+less SRR341725.megahit_asm/final.contigs.fa
+```
 
-QUESTE QUATTRO RIGHE LE VOLGLIO ELIMINARE
-## WE ALSO NEED TWO CUSTOM SCRIPT:
+You see:
+```
+>k99_61317 flag=0 multi=13.0000 len=254
+ATAGGAGAAAAGAAAATGGAATTTATAATTGATACAGTAAACTTAGAAGATATAAAAGAAGCAGTAGAATATATGCCAATTGTAGGAGTAACAAGTAATCCTTCAATCGTAAAGAAAACAAGTCCAAAAGACTTCTTTCAACATATGAAAGAAGTAAGAAAAATCATTGGAAAAGAAAGAAGTCTACACATTCAAGTTATTTCTAAAGAATGTGATGAAATCGTTAAAGAAGCCCATCGTATTATTGAAGAAAT
+>k99_18561 flag=1 multi=2.0000 len=334
+TTCTAAAAACTCAAAAACGTATTTTGAATATTCATTACCATTTCCTCTTACTATATCTATTGTATCTTCATGCTCAGCACCTTTTATTATTTTTAAATAAGAATTATTGTTTACATTCTTTAAATTATTTATAAAGGATTTTGAGTTTTCTATATCTATTAGTGTATCACTATCACCATGTATACAAAGAGTACTTATAGTAGAGTTTTTATTTATTAGATTTATAGGATTACAAGTATCAGTATTACTTTTATATATATACCTTTTTATTAACCTTTTAGATCTATTTGAATTACATTTATTAAAATTTAAAACTCCAGATATGGATATAAAA
+>k99_9684 flag=0 multi=1.0000 len=293
+TATCTCCCAGCTGTTTTTACAATGCAGTTACCCGTCTCCGCAAAAAAGCCTGTCAGATACCGGATCCAGCCCCCAAAGCCAGCACTCTTGACCTTACATCCCATAAACAGGATGTAGTCCAGATTGCTATAGAACCGGAGTCTTCTCCGGCAGGACTGATCCCAGATAATGGGAACAGACCTATGCACCTTGACAATTCACATACGATTGAAATCGAAGCAGACGGATTGCTTATACGAATGAGTAATGAGATCAAACCGTTACTTCTGAAGATGCTTATGGATACGCTTAAG
+>k99_16140 flag=1 multi=2.0000 len=336
+TATTGGCGAGGGAGCTGGAGTTGTTGTATTAGAGGAATTAGAACATGCGAAAAAGCGTGGGGCAAAGATTCTTGCAGAGTTAGCCGGATATGGTTCTACCTGTGATGCCTTCCACATCACTTCTCCTGCAGAGGACGGAAGCGGTGCAGCAAAAGCAATGGAACTTGCCATGGAAGAAGCAGGTGTAAAACCGGAAGAAGTAGATTACATTAACGCACATGGAACAGGAACCCACCACAACGATTTATTTGAGACAAGAGCTGTAAGACGTGCCTTTGGTGAGAGCGCAGACCATTTAAAAATGAGTTCTACAAAGTCAATGATCGGACATTTGCT
+>k99_13719 flag=1 multi=4.0000 len=378
+TCGTATTATAGTCCAACGACTCTTTTGAGTAGATGAAGCGGTGAGCAAACTGACCCTTAGCTAACGAACTGTTGGGGTTATATGCCAGCGTACCCAAAACGTAATCATCCGGATTACCGTCTGTTGTATACTCGCTGACTTCCGGAATACCGGTGCGGTTGATATCGAACCATGCATCCCAAGCCTGGCAACGGGTGCTGGCAATCCATTTCTGGGTAAGGATACATTTCAGCATACTTTCTTCGTCGGTGTCTTGGAATTCGTAAGGTTTTCCTGCTGCAATAAATTCATCGATTTTATTGTCATGGTTCCATCTGGCGAAAGAGAGTTCAACGGCATCGTCATAGTGAGTTTTTGCATTACCTTTGTCTCCCAGTC
+>k99_30666 flag=1 multi=3.0000 len=364
+ATGTACATGTACAGCGCCCTTCCCGAATATGTTCCTCAAAATCTTCCCGATAACCGACAAGCGCCTTATATACCATGTGTGCCGCCTCGTATCCGATGGCACAGTCGGAGGACTGCATAATTGACAATGCGCTGTCCTCCATTAAATCAAGTGTATCTAAAGTTGCATTTCCGTTCAATACGTCCGTGAGTAAATTCTTCAATTGCCAGAGACCAACACGGCACGGTACACATTTTCCACAAGTCTGTGCGTGACAAAGTTCAAGAAAAGCCCTTGCCATATCTACAGGACATAATCCCGGAGGGCTTGCCTCGATTCTTCGTTCCAAATCTTTGTAAAGCCCTTCTACAACAACCTGTGCTTT
+>k99_4035 flag=1 multi=3.0000 len=420
+```
+
+Press q.
+Now, let's see if we can get some insight into the lenghts of the contigs that have been produced.
+In the following command, be sure to put '>' into double quotes (">"), or you will just remove your assemblies:
+
+```
+grep ">" SRR341725.megahit_asm/final.contigs.fa | awk '{print $4}' | cut -f2 -d"=" | sort -n | tail -n 10
+```
+
+You get:
+```
+(assembly) cdonati@mbc1:/data/cdonati/assembly$ grep ">" SRR341725.megahit_asm/final.contigs.fa | awk '{print $4}' | cut -f2 -d"=" | sort -n | tail -n 10
+126168
+126295
+126807
+135316
+140121
+147158
+147953
+154844
+173376
+217021
+```
+
+So the longest contig obtained is 217021 nt. Conversely, the 10 shortest are long:
+```
+(assembly) cdonati@mbc1:/data/cdonati/assembly$ grep ">" SRR341725.megahit_asm/final.contigs.fa | awk '{print $4}' | cut -f2 -d"=" | sort -n | head -n 10
+200
+200
+200
+200
+200
+201
+201
+201
+201
+201
+```
+
+We will now use a short custom script. It only serves to cut out all cut out all contigs shorter than 1000. 
+Binning softwares will do this operation as well, but we wan't to avoid mapping reads against too-short contigs in the previous phase:
+
+We first copy this custom script:
+```
 cp /data/pmanghi/assembly/filter_contigs.py .
-cp /data/pmanghi/assembly/megahit2spades.py .
-
-##python megahit2spades.py ${s}.megahit_asm/final.contigs.fa ${s}.megahit_asm/contigs.fasta
-##python filter_contigs.py ${s}.megahit_asm/contigs.fasta ${s}.megahit_asm/contigs_filtered.fasta
+python filter_contigs.py ${s}.megahit_asm/final.contigs.fa ${s}.megahit_asm/contigs_filtered.fasta
 ```
 
-## Step n.3: Binning, i.e. grouping assemblies into genomes using MetaBat2
+## Step n.3: Mapping metagenomic reads against contigs: almost no assembly pipeline can work without this.
+Remember, this step is to obtain a function called depth of coverage: pratically, a genome chunk from a very abundant species will absorb many more reads than a lowly-abundant one. Translating, this implies that the average number of reads hitting a nucleotide in the first chunk, will be much higher than the second.
+
+The next commands are used to perform this additional mapping step. They are commented because they take time. You can copy their final results instead:
 ```
-cp ../5_assembly/${s}.megahit_asm/contigs_filtered.fasta ./
-cp ../5_assembly/${s}_1.fastq.gz ./
-cp ../5_assembly/${s}_2.fastq.gz ./
- 
-## bowtie2-build contigs_filtered.fasta contigs_filtered
-## bowtie2 -x contigs_filtered -1 ${s}_1.fastq.gz -2 ${s}_2.fastq.gz -S ${s}.sam -p 8 2> ${s}.bowtie2.log
+## bowtie2-build ${s}.megahit_asm/contigs_filtered.fasta ${s}.megahit_asm/contigs_filtered
+## bowtie2 -x ${s}.megahit_asm/contigs_filtered -1 ${s}_1.fastq.gz -2 ${s}_2.fastq.gz -S ${s}.sam -p 8 2> ${s}.bowtie2.log
 ## samtools view -bS ${s}.sam > ${s}.bam
 ## samtools sort ${s}.bam -o sorted_${s}.bam
 
-## COPY THE RESULT FOR NOW:
-cp /data/course_backup/6_MAG-reconstruction/sorted_${s}.bam .
+cp /data/pmanghi/assembly/sorted_${s}.bam .
+```
 
+We will then use an utility named jgi_summarize_bam_contig_depths, to summarize these alignments into a file storing the average depth per contigs: 
+
+```
 jgi_summarize_bam_contig_depths --outputDepth ${s}_depth.txt sorted_${s}.bam 2> ${s}_depth.log
 ```
 
-#### Step n.3: Run MetaBat 2 for binning
+#### Step n.4: Binning, i.e. grouping assemblies into genomes using MetaBat2
 ```
 metabat2 -i contigs_filtered.fasta -a ${s}_depth.txt -o ${s}_bins/bin -m 1500 --unbinned -t 8 > ${s}_metabat2.log
 ```
