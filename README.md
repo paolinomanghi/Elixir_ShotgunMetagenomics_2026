@@ -149,7 +149,7 @@ chmod +x KrakenTools/*
 
 4) To create one environment for running jupiter notebooks with analyses in R, type:
 ```
-4) conda create -n r_notebooks -c bioconda -c conda-forge r-base=4.3 jupyter r-irkernel r-microeco r-tidyverse=2.0.0
+conda create -n r_notebooks -c bioconda -c conda-forge r-base=4.3 jupyter r-irkernel r-microeco r-tidyverse=2.0.0
 ```
 
 Microeco must be installed directly in R:
@@ -202,7 +202,9 @@ DON'T: we did it already.
 
 6) To create one environment for Genomic Annotations (using the software Bakta), type:
 ```
-conda create -n genome_annotation -c bioconda bakta
+conda create -n genome_annotation -c bioconda bakta phylophlan
+
+bakta_db download --output /data/bakta_database/ --type light
 ```
 
 ## HOW DOES THIS WORK PRACTICALLY?
@@ -1026,8 +1028,6 @@ bin.11.fa  bin.14.fa  bin.17.fa  bin.2.fa   bin.22.fa  bin.25.fa  bin.28.fa  bin
 
 ## Step n.5: Estimate MAG quality using checkM2
 ```
-## pip install absl-py==1.1.0 ## DON'T DO IT. WE DID ALREADY
-
 checkm2_db="/data/CheckM2_database/uniref100.KO.1.dmnd"
 checkm2 testrun --database_path ${checkm2_db} --threads 8
 ```
@@ -1064,7 +1064,28 @@ Let's filter checkM2 results:
 awk -F'\t' '$2 > 50 && $3 < 5' ${s}_checkm2/quality_report.tsv > ${s}_checkm2/quality_report_filtered.tsv
 
 mkdir -p ${s}_bins_filtered
+
 cut -f1 ${s}_checkm2/quality_report_filtered.tsv | while read -r value; do cp ${s}_bins/${value}.fa ${s}_bins_filtered/; done
 ```
 
+# Hands-on n.6 - Genome annotation
+In this part we cover two main questions in genome annotations. For each genome we can ask two questions:
+
+1) Which genes are in this genome?
+2) Which species is this genome?
+
+## Step n.1: Annotate the bin genetic repertoire using Bakta
+
+Bakta has replaced Prokka as the most popular genome annotator. Bakta can be for few minutes quite memory intensive, so we'll turn off short ORFs detection to limit RAM usage.
+
+```
+mkdir -p ~/annotations
+cd ~/annotations
+
+for genome in ../assembly/SRR341725_bins_filtered/*.fa; do bakta --db /data/bakta_database/db-light --threads 4 --skip-sorf --skip-crispr --skip-trna --skip-tmrna --skip-rrna ${genome}; done
+```
+
+## Step n.2: Determine which species the bins belong to
+```
+```
 
