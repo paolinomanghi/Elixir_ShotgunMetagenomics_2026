@@ -125,6 +125,10 @@ conda create -n preprocessing -c bioconda -c conda-forge trimmomatic bowtie2 sam
 2) To create the environment for the Assembly (the genome reconstruction), type:
 ```
 conda create -n assembly -c bioconda -c conda-forge megahit bowtie2 metabat2 checkm2 samtools biopython
+
+conda activate assembly
+checkm2 database --download --path /data/CheckM2_database/
+conda deactivate
 ```
 
 3) To create one environment for MetaPhlAn and for Kraken/Bracken (taxonomic profiling), type:
@@ -972,30 +976,95 @@ We will then use an utility named jgi_summarize_bam_contig_depths, to summarize 
 jgi_summarize_bam_contig_depths --outputDepth ${s}_depth.txt sorted_${s}.bam 2> ${s}_depth.log
 ```
 
-#### Step n.4: Binning, i.e. grouping assemblies into genomes using MetaBat2
+You can have a look at this file:
 ```
-metabat2 -i contigs_filtered.fasta -a ${s}_depth.txt -o ${s}_bins/bin -m 1500 --unbinned -t 8 > ${s}_metabat2.log
+(assembly) cdonati@mbc1:/data/cdonati/assembly$ head -n 30 ${s}_depth.txt
+contigName      contigLen       totalAvgDepth   sorted_SRR341725        sorted_SRR341725-var
+k99_58093       1076    4.8563  4.8563  4.8463
+k99_47613       1094    5.06673 5.06673 4.00426
+k99_19368       1040    4.30816 4.30816 1.45755
+k99_25017       1179    3.90885 3.90885 2.19563
+k99_17754       1179    4.15192 4.15192 3.37584
+k99_25824       1519    16.0843 16.0843 40.379
+k99_32280       1667    6.45302 6.45302 7.21057
+k99_12106       1029    3.89886 3.89886 1.78317
+k99_39544       1172    4.70594 4.70594 6.45623
+k99_21790       1018    4.56054 4.56054 5.09504
+k99_20177       1029    5.0289  5.0289  4.67684
+k99_8878        1329    17.1174 17.1174 20.5106
+k99_18563       1060    3.856   3.856   1.55883
+k99_16141       1529    5.90197 5.90197 7.38685
+k99_4037        1025    3.51503 3.51503 2.01145
+k99_29052       1968    4.87683 4.87683 7.49146
+k99_41964       1635    4.5746  4.5746  5.33099
+k99_59706       1283    58.7923 58.7923 229.212
+k99_26632       1272    4.62459 4.62459 3.69628
+k99_22598       1123    4.83725 4.83725 4.2908
+k99_43578       2206    4.86813 4.86813 3.21384
+k99_10493       1521    4.33402 4.33402 3.413
+k99_17755       1045    3.28629 3.28629 1.14966
+k99_13722       1269    5.43921 5.43921 7.36239
+k99_37929       1340    4.80391 4.80391 5.06005
+k99_14526       1441    4.68863 4.68863 4.06821
+k99_2422        1019    4.62982 4.62982 4.70518
+k99_63735       2652    5.2338  5.2338  3.91677
+k99_46807       1068    4.37302 4.37302 1.73361
 ```
 
-#### Step n.4: Estimate MAG quality using checkM2
+## Step n.4: Binning, i.e. grouping assemblies into genomes using MetaBat2
 ```
-conda deactivate
-## conda create -n <checkm2> -c bioconda checkm2 ## DON'T DO IT. WE DID ALREADY
+metabat2 -i SRR341725.megahit_asm/contigs_filtered.fasta -a ${s}_depth.txt -o ${s}_bins/bin -m 1500 --unbinned -t 8 > ${s}_metabat2.log
+```
 
-conda activate checkm2
+This has practically distributed the contigs into "genomes", called "bins":
+```
+(assembly) cdonati@mbc1:/data/cdonati/assembly$ ls SRR341725_bins
+bin.1.fa   bin.12.fa  bin.15.fa  bin.18.fa  bin.20.fa  bin.23.fa  bin.26.fa  bin.29.fa  bin.31.fa  bin.34.fa  bin.4.fa  bin.7.fa  bin.BinInfo.txt     bin.tooShort.fa
+bin.10.fa  bin.13.fa  bin.16.fa  bin.19.fa  bin.21.fa  bin.24.fa  bin.27.fa  bin.3.fa   bin.32.fa  bin.35.fa  bin.5.fa  bin.8.fa  bin.BinMembers.txt  bin.unbinned.fa
+bin.11.fa  bin.14.fa  bin.17.fa  bin.2.fa   bin.22.fa  bin.25.fa  bin.28.fa  bin.30.fa  bin.33.fa  bin.36.fa  bin.6.fa  bin.9.fa  bin.lowDepth.fa
+```
+
+## Step n.5: Estimate MAG quality using checkM2
+```
 ## pip install absl-py==1.1.0 ## DON'T DO IT. WE DID ALREADY
 
-## LET'S NOT DOWNLOAD THE DATABASE
-## checkm2 database --download --path ./
-
-## WE CAN USE A COPY
 checkm2_db="/data/CheckM2_database/uniref100.KO.1.dmnd"
 checkm2 testrun --database_path ${checkm2_db} --threads 8
+```
+We now run it: checkM2 will estimate the two key-metrics to evaluate an assembled genomes:
 
+1) Completeness
+2) Contamination
+   
+```
 checkm2 predict -i ${s}_bins -o ${s}_checkm2 -x .fa --database_path ${checkm2_db} --threads 8
+```
 
+You should see:
+```
+(assembly) cdonati@mbc1:/data/cdonati/assembly$ checkm2 predict -i ${s}_bins -o ${s}_checkm2 -x .fa --database_path ${checkm2_db} --threads 8
+[06/17/2026 12:37:38 PM] INFO: Running CheckM2 version 1.1.0
+[06/17/2026 12:37:38 PM] INFO: Custom database path provided for predict run. Checking database at /data/CheckM2_database/uniref100.KO.1.dmnd...
+[06/17/2026 12:37:41 PM] INFO: Running quality prediction workflow with 8 threads.
+[06/17/2026 12:37:41 PM] WARNING: Skipping bin bin.lowDepth.fa as it has a size of 0 bytes.
+[06/17/2026 12:37:41 PM] WARNING: Skipping bin bin.tooShort.fa as it has a size of 0 bytes.
+[06/17/2026 12:37:41 PM] INFO: Calling genes in 37 bins with 8 threads:
+    Finished processing 32 of 37 (86.49%) bins.
+```
+
+Now this command has computed the metrics: normally, for bacterial genomes you want to genomes that have:
+
+1) Completeness>50%
+2) Contamination<5%
+
+Where those found at Completeness<90 are considered (high-quality). Depending on the kind of application you may want to select only these: for instance, NCBI accepts high-quality (completeness <90%, contamination <5%) as correctly determined genomes (sort of, as if they had had been isolated).
+
+Let's filter checkM2 results:
+```
 awk -F'\t' '$2 > 50 && $3 < 5' ${s}_checkm2/quality_report.tsv > ${s}_checkm2/quality_report_filtered.tsv
 
 mkdir -p ${s}_bins_filtered
 cut -f1 ${s}_checkm2/quality_report_filtered.tsv | while read -r value; do cp ${s}_bins/${value}.fa ${s}_bins_filtered/; done
 ```
+
+
