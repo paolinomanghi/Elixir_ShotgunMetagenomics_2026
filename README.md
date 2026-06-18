@@ -841,7 +841,7 @@ The last step is quality-control: clearly, the above procedure is not granted to
 
 We will start by activating the right environment. We have previously created it, is called *assembly*:
 ```
-mkdir ~/assembly
+mkdir -p ~/assembly
 cd ~/assembly
 
 conda deactivate
