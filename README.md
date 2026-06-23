@@ -1,13 +1,14 @@
 # Elixir_ShotgunMetagenomics_2026
 
-- [Hands-on n.1 - Preprocessing of standard metagenomic data](#user-content-hands-on-n1---preprocessing-of-standard-metagenomic-data)
-- [Hands-on n.2 - Taxonomic profiling using marker genes with MetaPhlAn 4](#user-content-hands-on-n2---taxonomic-profiling-using-marker-genes-with-metaphlan-4)
-- [Hands-on n.3 - Taxonomic profiling using k-mers: Kraken + Bracken taxonomic profiling](#user-content-hands-on-n3---taxonomic-profiling-using-k-mers-kraken--bracken-taxonomic-profiling)
-- [Hands-on n.4 - Functional profiling at the community level using HUMAnN 4](#user-content-hands-on-4-functional-profiling-at-the-community-level-using-humann-4)
-- [Hands-on n.5 - Metagenome assembly and binning](#user-content-hands-on-n5---metagenome-assembly-and-binning)
-  * [Approach 1: Following a protocol step-by-step](#user-content-approach-1-following-a-protocol-step-by-step)
-  * [Approach 2: Trying Nextflow pipelines](#user-content-approach-2-trying-nextflow-pipelines)
-- [BONUS: Hands-on n.6 - Taxonomic profiling beyond the level of species using StrainPhlAn](#user-content-bonus-hands-on-n6---taxonomic-profiling-beyond-the-level-of-species-using-strainphlan)
+- [Hands-on n.0 - Understading how to work on a public server using Conda](#Hands-on-n.0---Understading-how-to-work-on-a-public-server-using-Conda)
+- [Hands-on n.1 - Preprocessing of standard metagenomic data](#Hands-on-n.1---Preprocessing-of-standard-metagenomic-data)
+- [Hands-on n.2 - Taxonomic profiling: quantifying which species and taxa are there](#Hands-on-n.2---Taxonomic-profiling:-quantifying-which-species-and-taxa-are-there)
+- [Hands-on n.3 - Scripting in R to compare the results](#Hands-on-n.3---Scripting-in-R-to-compare-the-results)
+- [Hands-On 4: functional profiling at the community level using HUMAnN 4](#Hands-On-4:-functional-profiling-at-the-community-level-using-HUMAnN-4)
+- [Hands-on n.5 - Metagenome assembly and binning](#Hands-on-n.5---Metagenome-assembly-and-binning)
+  * [APPROACH 1: THE METAGENOMIC ASSEMBLY PROTOCOL STEP BY STEP](#APPROACH-1:-THE-METAGENOMIC-ASSEMBLY-PROTOCOL-STEP-BY-STEP)
+  * [APPROACH 2: NEXTFLOW PIPELINES](#APPROACH-2:-NEXTFLOW-PIPELINES)
+- [Hands-on n.6 - Genome annotation](#Hands-on-n.6---Genome-annotation)
 
 # Hands-on n.0 - Understading how to work on a public server using Conda
 ## Step n.0: log in into your machine and explore the configuration
@@ -503,18 +504,24 @@ s="SRS014476-Supragingival_plaque"
 metaphlan ${s}.fasta.gz --input_type fasta --mapout ${s}.bowtie2.bz2 --samout ${s}.sam.bz2 -o ${s}_profile.txt \
     --nproc 8 --db_dir ${mpa_db} --index ${db_version}
 
-#### for s in SRS014459-Stool SRS014472-Buccal_mucosa SRS014470-Tongue_dorsum SRS014494-Posterior_fornix SRS014476-Supragingival_plaque; do
-####     cp /data/course_backup/2_metaphlan/${s}_profile.txt ${s}_profile.txt; done
+for s in SRS014459-Stool SRS014472-Buccal_mucosa SRS014470-Tongue_dorsum SRS014494-Posterior_fornix SRS014476-Supragingival_plaque; do
+    cp /data/pmanghi/metaphlan_taxonomic_profiling/${s}_profile.txt ${s}_profile.txt; done
+```
 
-s="SRS014459-Stool"; metaphlan ${s}.fasta.gz --input_type fasta --mapout ${s}.bowtie2.bz2 --samout ${s}.sam.bz2 -o ${s}_profile.txt \
+***** DON'T RUN THE FOLLOWING COMMANDS *****
+```
+#### s="SRS014459-Stool"; metaphlan ${s}.fasta.gz --input_type fasta --mapout ${s}.bowtie2.bz2 --samout ${s}.sam.bz2 -o ${s}_profile.txt \
    --nproc 8 --db_dir ${mpa_db} --index ${db_version}
-s="SRS014470-Tongue_dorsum"; metaphlan ${s}.fasta.gz --input_type fasta --mapout ${s}.bowtie2.bz2 --samout ${s}.sam.bz2 -o ${s}_profile.txt \
+#### s="SRS014470-Tongue_dorsum"; metaphlan ${s}.fasta.gz --input_type fasta --mapout ${s}.bowtie2.bz2 --samout ${s}.sam.bz2 -o ${s}_profile.txt \
    --nproc 8 --db_dir ${mpa_db} --index ${db_version}
-s="SRS014472-Buccal_mucosa"; metaphlan ${s}.fasta.gz --input_type fasta --mapout ${s}.bowtie2.bz2 --samout ${s}.sam.bz2 -o ${s}_profile.txt \
+#### s="SRS014472-Buccal_mucosa"; metaphlan ${s}.fasta.gz --input_type fasta --mapout ${s}.bowtie2.bz2 --samout ${s}.sam.bz2 -o ${s}_profile.txt \
   --nproc 8 --db_dir ${mpa_db} --index ${db_version}
-s="SRS014494-Posterior_fornix"; metaphlan ${s}.fasta.gz --input_type fasta --mapout ${s}.bowtie2.bz2 --samout ${s}.sam.bz2 -o ${s}_profile.txt \
+#### s="SRS014494-Posterior_fornix"; metaphlan ${s}.fasta.gz --input_type fasta --mapout ${s}.bowtie2.bz2 --samout ${s}.sam.bz2 -o ${s}_profile.txt \
   --nproc 8 --db_dir ${mpa_db} --index ${db_version}
+```
 
+...AND merge the profile in a single table
+```
 merge_metaphlan_tables.py *_profile.txt | grep -P "clade_name|UNCLASSIFIED|t__" > metaphlan_table.tsv
 ```
 
@@ -707,6 +714,30 @@ press ctrl + c, type y and exit jupyter
 
 The next tool we are going apply represents one unique alternative to perform genetic/functional analysis in microbiome project. As a general concept, HUMAnN 4 solves a easy-to-understand problem, i.e.: it assigns metagenomic reads to functions in UniRef90.
 
+Practically, there are two things to consider. 
+First, it is one of a kind, in the sense that just a few other, less popular tools perform a similar task, while on the contrary a good number of tools exists that quantify or predict genes starting from reconstructed genomes. HUMANnN quantifies gene abundances starting from reads, which makes it sort of an unicum.
+
+Second, HUMAnN employs an algoritmical trick to make this computation faster and more efficient. In short, mapping raw reads against the whole UniRef90 is an expensive task. HUMAnN thus relies on the following pipeline:
+
+1) It runs MetaPhlAn
+2) It selects the species found at an abundance ≥0.01%.
+3) It filters out the pangenomes of such species (the pangenome of those species is available simply because is part of the MetaPhlAn database. Therefore if it runs MetaPhlAn it can also access its pangenomes). It also filters out the reads that were confidently mapped by MetaPhlAn.
+4) **It maps the reads that are confidently mapped by MetaPhlAn to a certain species only against the pangenome of THAT species**
+5) It maps the remaining raw reads against UniRef90 in translated research.
+
+What does HUMAnN do with the results from this mapping?
+HUMAnN has two key-outputs:
+
+1) the UniRef90 quantification, i.e.: for each protein identified (~20000-40000 per sample), it computes the RPK (read per kilobase), meaning that it natively normalizes the average number of reads hitting a single amino acid position on a protein by the lenght of the protein (NOTE: but it doesn't normalize over the sample sequencing depth)
+2) the pathway table: starting from the previous one, HUMAnN runs an algorithm known as "MinPath" on the MetaCyc database, applying a maximum parsimony algorithm: basically, it reconstructs, based on the single protein result, a pathway-based quantification of the genetic repertoire of a given community. 
+
+Last thing to remember: the algorithmical trick of dividing the total reads into i) mappable onto a specific pangenome and ii) not mappable against a specific pangenome, allows one more result: BOTH the tables aforementioned contain, in reality, two different results each:
+
+a) The community-level quantification of a single protein, or a pathway
+b) The PER-SPECIES ("stratified") output, were the protein or the pathway total RPKs are stratified by species of origin.
+
+A few last notes of this tool: if you followed up to here, you should have learned that MetaPhlAn, at least natively, does not provide a wonderful performance when speaking about non-human, and in general non-mammalian (i.e. soil, water...) microbiomes. ** Does this mean that HUMAnN cannot run on these metagenomes? No, technically not: it can; the sole difference is that the number of reads that will be conveniently mapped against MetaPhlAn-identified pangenomes will much lower, and likely the total computational time will increase.
+
 ## Step n.1: Get into the right directory & install download the necessary files
 ```
 mkdir -p ~/functional_profiling
@@ -731,13 +762,17 @@ wget ftp://ftp.sra.ebi.ac.uk/vol1/fastq/SRR154/096/SRR15408396/SRR15408396.fastq
 ```
 s="SRR15408396"
 metaphlan_options="--bowtie2db /data/metaphlan_databases/mpa_vOct22_CHOCOPhlAnSGB_202403 --index mpa_vOct22_CHOCOPhlAnSGB_202403 -t rel_ab_w_read_stats"
+```
 
-## NOW YOU CAN RUN: ## --nucleotide-database /data/humann_databases/chocophlan/
-## \humann --input ${s}.fastq.gz --output ${s} --threads 8  --count-normalization RPKs --metaphlan-options "${metaphlan_options}"
+***** DON'T RUN THE FOLLOWING COMMANDS *****
+```
+#### \humann --input ${s}.fastq.gz --output ${s} --threads 8  --count-normalization RPKs --metaphlan-options "${metaphlan_options}"
+#### rm -r ${s}/${s}_humann_temp/
+```
 
-## rm -r ${s}/${s}_humann_temp/
-
-## BUT IT TAKES THREE HOURS... OR YOU CAN RUN:
+It would take 4-5 HOURS:
+RUN INSTEAD:
+```
 mkdir -p ${s}
 
 cp /data/pmanghi/functional_profiling/${s}/${s}_2_genefamilies.tsv ${s}/${s}_genefamilies.tsv
@@ -763,12 +798,18 @@ Original Feature Count: 165701; Grouped 1+ times: 80349 (48.5%); Grouped 2+ time
 ## Step n.6: Run HUMAnN on a second sample
 ```
 s="SRR15408398"
+```
 
-## wget ftp://ftp.sra.ebi.ac.uk/vol1/fastq/SRR154/098/SRR15408398/SRR15408398.fastq.gz
-## \humann --input ${s}.fastq.gz --output ${s} --threads 8  --count-normalization RPKs --metaphlan-options "${metaphlan_options}"
-## rm -r ${s}/${s}_humann_temp/
+***** AGAIN, DON'T RUN THE FOLLOWING COMMANDS !! *****
 
-##
+```
+#### wget ftp://ftp.sra.ebi.ac.uk/vol1/fastq/SRR154/098/SRR15408398/SRR15408398.fastq.gz
+#### \humann --input ${s}.fastq.gz --output ${s} --threads 8  --count-normalization RPKs --metaphlan-options "${metaphlan_options}"
+#### rm -r ${s}/${s}_humann_temp/
+```
+
+RUN INSTEAD:
+```
 mkdir -p ${s}
 cp /data/pmanghi/functional_profiling/${s}/${s}_4_pathabundance.tsv ${s}/${s}_pathabundance.tsv
 ```
@@ -783,7 +824,7 @@ cp SRR15408398/SRR15408398_pathabundance.tsv merged/
 humann_join_tables -i merged -o merged_pathabundance.tsv --file_name pathabundance
 ```
 
-You now see:
+You should see something like:
 ```
 (humann4) cdonati@mbc1:/data/cdonati/functional_profiling# humann_join_tables -i merged -o merged_pathabundance.tsv --file_name pathabundance
 Gene table created: /data/cdonati/functional_profiling/merged_pathabundance.tsv
@@ -1068,6 +1109,10 @@ mkdir -p ${s}_bins_filtered
 cut -f1 ${s}_checkm2/quality_report_filtered.tsv | while read -r value; do cp ${s}_bins/${value}.fa ${s}_bins_filtered/; done
 ```
 
+## APPROACH 2: NEXTFLOW PIPELINES
+Visit the link:
+[Nextflow pipeline metagenomic tutorials](https://github.com/claudiodonati/Elixir_Bari_2026/edit/main/README.md)
+
 # Hands-on n.6 - Genome annotation
 In this part we cover two main questions in genome annotations. For each genome we can ask two questions:
 
@@ -1119,10 +1164,6 @@ While, if you need the sequence:
 (genome_annotation) cdonati@mbc1:/data/cdonati/annotations# less -S bin.18.faa 
 ```
 
-## Step n.2: Determine which species the bins belong to
-```
-
-```
 
 
 
