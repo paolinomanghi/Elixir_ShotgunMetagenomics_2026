@@ -2,12 +2,12 @@
 
 - [Hands-on n.0 - Understading how to work on a public server using Conda](#Hands-on-n.0---Understading-how-to-work-on-a-public-server-using-Conda)
 - [Hands-on n.1 - Preprocessing of standard metagenomic data](#Hands-on-n.1---Preprocessing-of-standard-metagenomic-data)
-- [Hands-on n.2 - Taxonomic profiling: quantifying which species and taxa are there](#Hands-on-n.2---Taxonomic-profiling:-quantifying-which-species-and-taxa-are-there)
+- [Hands-on n.2 - Taxonomic profiling: quantifying which species and taxa are there](#Hands-on-n.2---Taxonomic-profiling-quantifying-which-species-and-taxa-are-there)
 - [Hands-on n.3 - Scripting in R to compare the results](#Hands-on-n.3---Scripting-in-R-to-compare-the-results)
 - [Hands-On n.4: functional profiling at the community level using HUMAnN 4](#Hands-On-4:-functional-profiling-at-the-community-level-using-HUMAnN-4)
 - [Hands-on n.5 - Metagenome assembly and binning](#Hands-on-n.5---Metagenome-assembly-and-binning)
-  * [APPROACH n.1: THE METAGENOMIC ASSEMBLY PROTOCOL STEP BY STEP](#APPROACH-1:-THE-METAGENOMIC-ASSEMBLY-PROTOCOL-STEP-BY-STEP)
-  * [APPROACH n.2: NEXTFLOW PIPELINES](#APPROACH-2:-NEXTFLOW-PIPELINES)
+  * [APPROACH n.1: THE METAGENOMIC ASSEMBLY PROTOCOL STEP BY STEP](#APPROACH-1-THE-METAGENOMIC-ASSEMBLY-PROTOCOL-STEP-BY-STEP)
+  * [APPROACH n.2: NEXTFLOW PIPELINES](#APPROACH-2-NEXTFLOW-PIPELINES)
 - [Hands-on n.6 - Genome annotation](#Hands-on-n.6---Genome-annotation)
 
 # Hands-on n.0 - Understading how to work on a public server using Conda
