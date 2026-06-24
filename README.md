@@ -10,6 +10,9 @@
   * [APPROACH n.2: NEXTFLOW PIPELINES](#APPROACH-2-NEXTFLOW-PIPELINES)
 - [Hands-on n.6 - Genome annotation](#Hands-on-n.6---Genome-annotation)
 
+> **NOTE:** When you see this notation "FOR DOCUMENTATION ONLY: DO NOT EXECUTE"
+> It means that the following code snippet has been left for reference, but *must not* be executed
+
 # Hands-on n.0 - Understading how to work on a public server using Conda
 ## Step n.0: log in into your machine and explore the configuration
 ```
@@ -102,6 +105,8 @@ tax_profiling            /data/anaconda2026/envs/tax_profiling
 Did it work ?
 
 ## HOW DO WE RECREATE ANYTHING OF THAT?
+
+> **FOR DOCUMENTATION ONLY: DO NOT EXECUTE**
 In case it doesn't work, the following part can be used to recreate the same exact set of environment from scratch. As you'll see, it is very easy to install all Conda environments.
 
 First ensure that you have entered the Conda ecosystem:
@@ -199,7 +204,6 @@ Normally, you should execute the last three commands AFTER:
 #### humann_databases --download uniref uniref90_ec_filtered_diamond humann_databases
 #### humann_databases --download utility_mapping full humann_databases
 ```
-DON'T: we did it already.
 
 6) To create one environment for Genomic Annotations (using the software Bakta), type:
 ```
@@ -315,12 +319,16 @@ Let's thus assign the bowtie2 indexes to a variable:
 human_gen_bowtie_indexes="/data/human_genome/GCF_009914755.1_T2T-CHM13v2.0"
 ```
 
-Now we'll just align the fastq against the humann h
+Now we'll just align the fastq against the human genome.
+
+> **FOR DOCUMENTATION ONLY: DO NOT EXECUTE**
+> The following should be run only once to prepare the bowtie indexes:
+```
+#### bowtie2-build ${human_gen_bowtie_indexes/_genomic/.fna} /data/human_genome/GCF_009914755.1_T2T-CHM13v2.0 ## DON'T RUN IT: IT TAKES A FEW HOURS TO BE EXECUTED
+```
+
 Run bowtie alignment against the human genome:
 ```
-## VERSION 4 HOURS LONG:
-## bowtie2-build ${human_gen_bowtie_indexes/_genomic/.fna} /data/human_genome/GCF_009914755.1_T2T-CHM13v2.0 ## DON'T RUN IT: IT TAKES A FEW HOURS TO BE EXECUTED
-
 bowtie2 -x ${human_gen_bowtie_indexes} -1 ${s}_filtered_1.fastq -2 ${s}_filtered_2.fastq -S ${s}.sam --very-sensitive-local -p 8
 ```
 See something like:
@@ -342,7 +350,8 @@ See something like:
         2 (0.00%) aligned >1 times
 0.01% overall alignment rate
 ```
-? While often disregarded, these stats are among the most important information you may want to store!
+
+While often disregarded, these stats are among the most important information you may want to store!
 Next, we must operate on the .bam file produced by bowtie2 (Remember? We still want a clean and usable fastq!)
 
 ```
@@ -508,7 +517,8 @@ for s in SRS014459-Stool SRS014472-Buccal_mucosa SRS014470-Tongue_dorsum SRS0144
     cp /data/pmanghi/metaphlan_taxonomic_profiling/${s}_profile.txt ${s}_profile.txt; done
 ```
 
-***** DON'T RUN THE FOLLOWING COMMANDS *****
+> **FOR DOCUMENTATION ONLY: DO NOT EXECUTE**
+> The following should be run to obtain the MetaPhlAn profile for each sample, if it wasn't available in /pmanghi folder:
 ```
 #### s="SRS014459-Stool"; metaphlan ${s}.fasta.gz --input_type fasta --mapout ${s}.bowtie2.bz2 --samout ${s}.sam.bz2 -o ${s}_profile.txt \
    --nproc 8 --db_dir ${mpa_db} --index ${db_version}
@@ -520,7 +530,7 @@ for s in SRS014459-Stool SRS014472-Buccal_mucosa SRS014470-Tongue_dorsum SRS0144
   --nproc 8 --db_dir ${mpa_db} --index ${db_version}
 ```
 
-...AND merge the profile in a single table
+Next, you can merge the profile in a single table
 ```
 merge_metaphlan_tables.py *_profile.txt | grep -P "clade_name|UNCLASSIFIED|t__" > metaphlan_table.tsv
 ```
@@ -764,13 +774,13 @@ s="SRR15408396"
 metaphlan_options="--bowtie2db /data/metaphlan_databases/mpa_vOct22_CHOCOPhlAnSGB_202403 --index mpa_vOct22_CHOCOPhlAnSGB_202403 -t rel_ab_w_read_stats"
 ```
 
-***** DON'T RUN THE FOLLOWING COMMANDS *****
+> **FOR DOCUMENTATION ONLY: DO NOT EXECUTE**
+> Running HUMAnN4 takes a few hours with 16 cores. DON'T. The command is for illustrative purposes and future necessities.
 ```
 #### \humann --input ${s}.fastq.gz --output ${s} --threads 8  --count-normalization RPKs --metaphlan-options "${metaphlan_options}"
 #### rm -r ${s}/${s}_humann_temp/
 ```
 
-It would take 4-5 HOURS:
 RUN INSTEAD:
 ```
 mkdir -p ${s}
@@ -800,8 +810,8 @@ Original Feature Count: 165701; Grouped 1+ times: 80349 (48.5%); Grouped 2+ time
 s="SRR15408398"
 ```
 
-***** AGAIN, DON'T RUN THE FOLLOWING COMMANDS !! *****
-
+> **FOR DOCUMENTATION ONLY: DO NOT EXECUTE**
+> Running HUMAnN4 takes a few hours with 16 cores. DON'T. The command is for illustrative purposes and future necessities.
 ```
 #### wget ftp://ftp.sra.ebi.ac.uk/vol1/fastq/SRR154/098/SRR15408398/SRR15408398.fastq.gz
 #### \humann --input ${s}.fastq.gz --output ${s} --threads 8  --count-normalization RPKs --metaphlan-options "${metaphlan_options}"
@@ -916,15 +926,21 @@ Optional Arguments:
 
 ```
 
-We won't run it. It takes a couple of hours. In fact is by far the time-consuming step in assembly.
+Let's set up some important variable after having downloaded a sample:
 ```
 wget ftp://ftp.sra.ebi.ac.uk/vol1/fastq/SRR341/SRR341725/SRR341725_[12].fastq.gz
-
 s="SRR341725"
-## MEGAHIT WILL TAKE A FEW HOURS:
-## megahit -1 ${s}_1.fastq.gz -2 ${s}_2.fastq.gz -o ${s}.megahit_asm -t 8
+```
 
-## FOR NOW WE CAN COPY THE RESULTS FROM MEGAHIT
+> **FOR DOCUMENTATION ONLY: DO NOT EXECUTE**
+> Running Megahit takes several hours. In fact is by far the time-consuming step in assembly.
+> As per HUMAnN4, we will just copy the result. The command is reported for future necessities.
+```
+#### megahit -1 ${s}_1.fastq.gz -2 ${s}_2.fastq.gz -o ${s}.megahit_asm -t 8
+```
+
+LET'S COPY THE RESULT:
+```
 mkdir -p ${s}.megahit_asm/
 
 cp /data/pmanghi/assembly/${s}.megahit_asm/final.contigs.fa ${s}.megahit_asm/
@@ -1003,18 +1019,24 @@ python filter_contigs.py ${s}.megahit_asm/final.contigs.fa ${s}.megahit_asm/cont
 ## Step n.3: Mapping metagenomic reads against contigs: almost no assembly pipeline can work without this.
 Remember, this step is to obtain a function called depth of coverage: pratically, a genome chunk from a very abundant species will absorb many more reads than a lowly-abundant one. Translating, this implies that the average number of reads hitting a nucleotide in the first chunk, will be much higher than the second.
 
-The next commands are used to perform this additional mapping step. They are commented because they take time. You can copy their final results instead:
-```
-## bowtie2-build ${s}.megahit_asm/contigs_filtered.fasta ${s}.megahit_asm/contigs_filtered
-## bowtie2 -x ${s}.megahit_asm/contigs_filtered -1 ${s}_1.fastq.gz -2 ${s}_2.fastq.gz -S ${s}.sam -p 8 2> ${s}.bowtie2.log
-## samtools view -bS ${s}.sam > ${s}.bam
-## samtools sort ${s}.bam -o sorted_${s}.bam
+The next commands are used to perform this additional mapping step. They are commented because they take time.
+Again, we can copy the final results instead.
 
+> **FOR DOCUMENTATION ONLY: DO NOT EXECUTE**
+> Mapping raw reads back on the contigs is time-consuming. We can avoid this step now and copy the results.
+```
+#### bowtie2-build ${s}.megahit_asm/contigs_filtered.fasta ${s}.megahit_asm/contigs_filtered
+#### bowtie2 -x ${s}.megahit_asm/contigs_filtered -1 ${s}_1.fastq.gz -2 ${s}_2.fastq.gz -S ${s}.sam -p 8 2> ${s}.bowtie2.log
+#### samtools view -bS ${s}.sam > ${s}.bam
+#### samtools sort ${s}.bam -o sorted_${s}.bam
+```
+
+Let's just copy the result:
+```
 cp /data/pmanghi/assembly/sorted_${s}.bam .
 ```
 
 We will then use an utility named jgi_summarize_bam_contig_depths, to summarize these alignments into a file storing the average depth per contigs: 
-
 ```
 jgi_summarize_bam_contig_depths --outputDepth ${s}_depth.txt sorted_${s}.bam 2> ${s}_depth.log
 ```
