@@ -10,10 +10,12 @@
   * [APPROACH n.2: NEXTFLOW PIPELINES](#APPROACH-2-NEXTFLOW-PIPELINES)
 - [Hands-on n.6 - Genome annotation](#Hands-on-n.6---Genome-annotation)
 
-> **NOTE:** When you see this notation "FOR DOCUMENTATION ONLY: DO NOT EXECUTE"
-> It means that the following code snippet has been left for reference, but *must not* be executed
-
 # Hands-on n.0 - Understading how to work on a public server using Conda
+
+> **NOTE:** When you see this notation "FOR DOCUMENTATION ONLY: DO NOT EXECUTE"
+> It means that the following code snippet has been left for reference, but *must not* be executed.
+> EACH CODE SNIPPET THAT SHOULD NOT BE EXECUTED HAS A NOTE LIKE THIS.
+
 ## Step n.0: log in into your machine and explore the configuration
 ```
 ssh YOUR-NAME@212.189.202.106
@@ -106,10 +108,8 @@ Did it work ?
 
 ## HOW DO WE RECREATE ANYTHING OF THAT?
 
-> **FOR DOCUMENTATION ONLY: DO NOT EXECUTE**
-In case it doesn't work, the following part can be used to recreate the same exact set of environment from scratch. As you'll see, it is very easy to install all Conda environments.
-
 First ensure that you have entered the Conda ecosystem:
+> **FOR DOCUMENTATION ONLY: DO NOT EXECUTE**
 ```
 conda deactivate
 source /data/anaconda2026/.conda
@@ -117,6 +117,7 @@ source /data/anaconda2026/.conda
 
 Then you can execute the following steps:
 0) Be sure the system knows where to search for correct program versions:
+> **FOR DOCUMENTATION ONLY: DO NOT EXECUTE**
 ```
 conda config --add channels defaults
 conda config --add channels bioconda
@@ -124,11 +125,13 @@ conda config --add channels conda-forge
 ```
  
 1) To create the environment for Data Preprocessing, type:
+> **FOR DOCUMENTATION ONLY: DO NOT EXECUTE**
 ```
 conda create -n preprocessing -c bioconda -c conda-forge trimmomatic bowtie2 samtools
 ```
 
 2) To create the environment for the Assembly (the genome reconstruction), type:
+> **FOR DOCUMENTATION ONLY: DO NOT EXECUTE**
 ```
 conda create -n assembly -c bioconda -c conda-forge megahit bowtie2 metabat2 checkm2 samtools biopython
 
@@ -138,6 +141,7 @@ conda deactivate
 ```
 
 3) To create one environment for MetaPhlAn and for Kraken/Bracken (taxonomic profiling), type:
+> **FOR DOCUMENTATION ONLY: DO NOT EXECUTE**
 ```
 conda create -n tax_profiling -c bioconda -c conda-forge metaphlan kraken bracken
 mkdir -p /data/metaphlan_databases
@@ -154,11 +158,13 @@ chmod +x KrakenTools/*
 ```
 
 4) To create one environment for running jupiter notebooks with analyses in R, type:
+> **FOR DOCUMENTATION ONLY: DO NOT EXECUTE**
 ```
 conda create -n r_notebooks -c bioconda -c conda-forge r-base=4.3 jupyter r-irkernel r-microeco r-tidyverse=2.0.0
 ```
 
 Microeco must be installed directly in R:
+> **FOR DOCUMENTATION ONLY: DO NOT EXECUTE**
 ```
 (r_notebooks) cdonati@mbc1:~# R
 
@@ -184,8 +190,8 @@ Type 'q()' to quit R.
 ```
 
 
-
 5) To create one environment for HUMAnN4 (functional profiling of communities), type:
+> **FOR DOCUMENTATION ONLY: DO NOT EXECUTE**
 ```
 conda create -n humann4 -c bioconda python=3.12
 conda activate humann4
@@ -199,6 +205,7 @@ humann_config --update database_folders utility_mapping /data/humann_databases/u
 ```
 
 Normally, you should execute the last three commands AFTER:
+> **FOR DOCUMENTATION ONLY: DO NOT EXECUTE**
 ```
 #### humann_databases --download chocophlan full humann_databases
 #### humann_databases --download uniref uniref90_ec_filtered_diamond humann_databases
@@ -206,15 +213,13 @@ Normally, you should execute the last three commands AFTER:
 ```
 
 6) To create one environment for Genomic Annotations (using the software Bakta), type:
+> **FOR DOCUMENTATION ONLY: DO NOT EXECUTE**
 ```
 conda create -n genome_annotation -c bioconda bakta phylophlan
-
 bakta_db download --output /data/bakta_database/ --type light
 ```
 
 ## HOW DOES THIS WORK PRACTICALLY?
-
-
 To understand how this works, Type:
 ```
 conda activate tax_profiling
