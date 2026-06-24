@@ -12,6 +12,7 @@
 
 # Hands-on n.0 - Understading how to work on a public server using Conda
 
+## THE SOLE IMPORTANT INDICATION:
 > **NOTE:** When you see this notation "FOR DOCUMENTATION ONLY: DO NOT EXECUTE"
 > It means that the following code snippet has been left for reference, but *must not* be executed.
 > EACH CODE SNIPPET THAT SHOULD NOT BE EXECUTED HAS A NOTE LIKE THIS.
@@ -106,32 +107,30 @@ tax_profiling            /data/anaconda2026/envs/tax_profiling
 
 Did it work ?
 
-## HOW DO WE RECREATE ANYTHING OF THAT?
-
-First ensure that you have entered the Conda ecosystem:
 > **FOR DOCUMENTATION ONLY: DO NOT EXECUTE**
+> If you want to recreate anything of that, first be sure you have the conda present:
 ```
 conda deactivate
 source /data/anaconda2026/.conda
 ```
 
-Then you can execute the following steps:
-0) Be sure the system knows where to search for correct program versions:
 > **FOR DOCUMENTATION ONLY: DO NOT EXECUTE**
+> Then you can execute the following steps:
+> 0) Be sure the system knows where to search for correct program versions:
 ```
 conda config --add channels defaults
 conda config --add channels bioconda
 conda config --add channels conda-forge
 ```
- 
-1) To create the environment for Data Preprocessing, type:
+
 > **FOR DOCUMENTATION ONLY: DO NOT EXECUTE**
+> 1) To create the environment for Data Preprocessing, type:
 ```
 conda create -n preprocessing -c bioconda -c conda-forge trimmomatic bowtie2 samtools
 ```
 
-2) To create the environment for the Assembly (the genome reconstruction), type:
 > **FOR DOCUMENTATION ONLY: DO NOT EXECUTE**
+> 2) To create the environment for the Assembly (the genome reconstruction), type:
 ```
 conda create -n assembly -c bioconda -c conda-forge megahit bowtie2 metabat2 checkm2 samtools biopython
 
@@ -140,8 +139,8 @@ checkm2 database --download --path /data/CheckM2_database/
 conda deactivate
 ```
 
-3) To create one environment for MetaPhlAn and for Kraken/Bracken (taxonomic profiling), type:
 > **FOR DOCUMENTATION ONLY: DO NOT EXECUTE**
+> 3) To create one environment for MetaPhlAn and for Kraken/Bracken (taxonomic profiling), type:
 ```
 conda create -n tax_profiling -c bioconda -c conda-forge metaphlan kraken bracken
 mkdir -p /data/metaphlan_databases
@@ -157,14 +156,14 @@ git clone https://github.com/jenniferlu717/KrakenTools.git
 chmod +x KrakenTools/*
 ```
 
-4) To create one environment for running jupiter notebooks with analyses in R, type:
 > **FOR DOCUMENTATION ONLY: DO NOT EXECUTE**
+> 4) To create one environment for running jupiter notebooks with analyses in R, type:
 ```
 conda create -n r_notebooks -c bioconda -c conda-forge r-base=4.3 jupyter r-irkernel r-microeco r-tidyverse=2.0.0
 ```
 
-Microeco must be installed directly in R:
 > **FOR DOCUMENTATION ONLY: DO NOT EXECUTE**
+> Microeco must be installed directly in R:
 ```
 (r_notebooks) cdonati@mbc1:~# R
 
@@ -189,9 +188,8 @@ Type 'q()' to quit R.
 > install.packages("microeco", dependencies = TRUE)
 ```
 
-
-5) To create one environment for HUMAnN4 (functional profiling of communities), type:
 > **FOR DOCUMENTATION ONLY: DO NOT EXECUTE**
+> 5) To create one environment for HUMAnN4 (functional profiling of communities), type:
 ```
 conda create -n humann4 -c bioconda python=3.12
 conda activate humann4
@@ -204,16 +202,16 @@ humann_config --update database_folders protein /data/humann_databases/uniref/
 humann_config --update database_folders utility_mapping /data/humann_databases/utility_mapping/
 ```
 
-Normally, you should execute the last three commands AFTER:
 > **FOR DOCUMENTATION ONLY: DO NOT EXECUTE**
+> Normally, you should execute the last three commands AFTER:
 ```
 #### humann_databases --download chocophlan full humann_databases
 #### humann_databases --download uniref uniref90_ec_filtered_diamond humann_databases
 #### humann_databases --download utility_mapping full humann_databases
 ```
 
-6) To create one environment for Genomic Annotations (using the software Bakta), type:
 > **FOR DOCUMENTATION ONLY: DO NOT EXECUTE**
+> 6) To create one environment for Genomic Annotations (using the software Bakta), type:
 ```
 conda create -n genome_annotation -c bioconda bakta phylophlan
 bakta_db download --output /data/bakta_database/ --type light
