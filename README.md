@@ -885,7 +885,8 @@ You can have a look at this table:
 Press q
 
 ## Where do HUMAnN 4 pathways come from?
-HUMAnN pathways are MetaCyc pathways.
+HUMAnN pathways are MetaCyc pathways. MetaCyc is a comprehensive, highly curated reference database that catalogs experimentally validated metabolic pathways, enzymes, and metabolites from all domains of life. It is one of the largest and most reliable collections of metabolic knowledge, compiled directly from tens of thousands of scientific publications.
+
 For instance, suppose we are interested in the urea cycle.
 In the *pathabundance* table, you find that the pathway of the urea cycle is encoded as *PWY-4984*.
 
