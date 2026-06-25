@@ -34,12 +34,10 @@ pwd
 
 Did it return /data/YOURNAME/?
 
-This is a public server, it means that several people can work in this environment without step on each other toes:
-multiple programs must be installed at the same time, and it must be possible to install new ones without intefering with the existing program.
+This is a public server, it means that several people can work in this environment without step on each other toes: multiple programs must be installed at the same time, and it must be possible to install new ones without intefering with the existing program.
 Personnel, for most, do not have root privilegies, so being able to install software packages without compiling is also a requirement.
 
-There are several ways to achieve this situation, the most widely adopted are Docker, NextFlow, and Anaconda. These are different instruments, but they achieve 
-similar goals: having an infrastructure that coordinates multiple softwares with multiple version able so that an entire lab can work simultanously.
+There are several ways to achieve this situation, the most widely adopted are Docker, NextFlow, and Anaconda. These are different instruments, but they achieve similar goals: having an infrastructure that coordinates multiple softwares with multiple version able so that an entire lab can work simultanously.
 
 We'll use Anaconda, as it is the one requiring less specific knowledge.
 
@@ -70,7 +68,6 @@ cdonati@mbc1:/data$ source anaconda2026/.conda
 
 You see the *(base)* flag? It means that the system recognize your conda ecosystem.
 Now type:
-
 ```
 which python
 which conda
@@ -270,8 +267,7 @@ As you can see, the programs inside each environment are protected, meaning that
 
 # Hands-on n.1 - Preprocessing of standard metagenomic data
 ## Step n.1: raw data pre-processing on fastq example files "seq_1.fastq.gz" and "seq_2.fastq.gz" from https://github.com/biobakery/biobakery/wiki/kneaddata
-In this step, we just download a toy fastq sample. Normally, this step may take a few weeks!
-
+In this step, we just download a toy fastq sample. Normally, this step may take a few days!
 ```
 mkdir ~/preprocessing
 cd ~/preprocessing
@@ -288,15 +284,13 @@ cd input
 conda activate preprocessing
 s="seq"
 ```
-Conda has the ability to install part of the relevant files it needs. For instance, the software Trimmomatic, which is needed (among other things) to
-eliminate Illumina adapters from raw fastq, is installed toghether with all revelant Illumina adapters. This can create some problems, sometimes, when 
+Conda has the ability to install part of the relevant files it needs. For instance, the software Trimmomatic, which is needed (among other things) to eliminate Illumina adapters from raw fastq, is installed toghether with all revelant Illumina adapters. This can create some problems, sometimes, when 
 one is not familiar with Anaconda package structure. Type:
 
 ```
 ls /data/anaconda2026/envs/preprocessing/share/trimmomatic/adapters/
 ```
-See multiple fasta files with different type of adapters? This reflect and adapts to different type of sequencing procedure applied, allowing you to use Trimmomatic in
-different experimental settings.
+See multiple fasta files with different type of adapters? This reflect and adapts to different type of sequencing procedure applied, allowing you to use Trimmomatic in different experimental settings.
 
 Now set the correct adapter sequences for this project:
 ```
@@ -325,8 +319,7 @@ Input Read Pairs: 42473 Both Surviving: 41006 (96.55%) Forward Only Surviving: 1
 TrimmomaticPE: Completed successfully
 
 ```
-While normally ignored, stdout prompts like this one can communitcate you a lot of information, establishing a bridge in between your approach and the developer mind (who has, 
-typically, conceived the prompt messages to verify the meaningfullness of the software passages)
+While normally ignored, stdout prompts like this one can communitcate you a lot of information, establishing a bridge in between your approach and the developer mind (who has, typically, conceived the prompt messages to verify the meaningfullness of the software passages)
 
 But what did we produced ?
 
@@ -334,20 +327,16 @@ But what did we produced ?
 for i in *.fastq; do echo -ne "${i}\t"; cat "$i" | wc -l; done
 ```
 
-Now that we have cleaned our reads, we can focus on some biological aspect of the project: metagenomic samples can be host-derived or not, for instance they can be associated with a 
-human being, a dog, or a plant. In all these cases the characterization of associated microbial communities benefit from a step of removal of the host genome. The host genome can be present in small traces, like in the case of the humann intestine, or it can be constitute large part of the metagenomic sequences (like for instance in the case of dog saliva metagenomic samples).
+Now that we have cleaned our reads, we can focus on some biological aspect of the project: metagenomic samples can be host-derived or not, for instance they can be associated with a  human being, a dog, or a plant. In all these cases the characterization of associated microbial communities benefit from a step of removal of the host genome. The host genome can be present in small traces, like in the case of the humann intestine, or it can be constitute large part of the metagenomic sequences (like for instance in the case of dog saliva metagenomic samples).
 
-Environmental samples (water, soil, air) are not associated to a host. In principle, this implies that is not necessary to exclude the host. However, practically ANY sample should be, in addition to any preprocessing phase performed, treated as a human-derived sample, for the simple reason that this will remove putative human DNA contamination in ìntroduced during the sample 
-preparation.
+Environmental samples (water, soil, air) are not associated to a host. In principle, this implies that is not necessary to exclude the host. However, practically ANY sample should be, in addition to any preprocessing phase performed, treated as a human-derived sample, for the simple reason that this will remove putative human DNA contamination in ìntroduced during the sample preparation.
 
 We'll now see how to perform the removal of the human genome from the previously polished sequences.
 
 ## Step n. 3: Aligning reads against the humann genome, and retrieve only what does not align.
+First of all it is common practive to chose a single instance of the human genome. For this purpose we'll chose a modern one, sequenced using long-reads-based technologies (the 'thelomer-to-thelomer'). A copy of this genome can be find at: https://www.ncbi.nlm.nih.gov/datasets/genome/GCF_009914755.1/GCF_009914755.1_T2T-CHM13v2.0.fna.
 
-First of all it is common practive to chose a single instance of the human genome. For this purpose we'll chose a modern one, sequenced using long-reads-based technologies
-(the 'thelomer-to-thelomer'). A copy of this genome can be find at: https://www.ncbi.nlm.nih.gov/datasets/genome/GCF_009914755.1/GCF_009914755.1_T2T-CHM13v2.0.fna.
-
-This, like any other host-associated genome used in this phase, is normally retrieved from NCBI as it is important to be able to demonstrate the origin of the genomes used.
+Like any other host-associated genome used in this phase, this has been retrieved from NCBI.
 We'll use bowtie2 to align our DNA sequences the human genome. The first step is thus to create the bowtie2 indexes to perform such a mapping.
 As it is a timy process, we have predisposed the ready-for-use bowtie2 indexes already. 
 
@@ -368,8 +357,8 @@ Run bowtie alignment against the human genome:
 ```
 bowtie2 -x ${human_gen_bowtie_indexes} -1 ${s}_filtered_1.fastq -2 ${s}_filtered_2.fastq -S ${s}.sam --very-sensitive-local -p 8
 ```
-See something like:
 
+See something like:
 ```
 41006 reads; of these:
   41006 (100.00%) were paired; of these:
@@ -388,8 +377,7 @@ See something like:
 0.01% overall alignment rate
 ```
 
-While often disregarded, these stats are among the most important information you may want to store!
-Next, we must operate on the .bam file produced by bowtie2 (Remember? We still want a clean and usable fastq!)
+While often disregarded, these stats are among the most important information you may want to store! Next, we must operate on the .bam file produced by bowtie2 (Remember? We still want a clean and usable fastq!)
 
 ```
 samtools view -bS ${s}.sam > ${s}.bam
@@ -397,14 +385,14 @@ samtools view -b -f 12 -F 256 ${s}.bam > ${s}.bothunmapped.bam
 samtools sort -n -m 5G -@ 2 ${s}.bothunmapped.bam -o ${s}.bothunmapped.sorted.bam
 samtools fastq ${s}.bothunmapped.sorted.bam -1 >(gzip > ${s}_filtered.final_1.fastq.gz) -2 >(gzip > ${s}_filtered.final_2.fastq.gz) -0 /dev/null -s /dev/null -n
 ```
+
 Look at the last prompt:
 ```
 [M::bam2fq_mainloop] discarded 0 singletons
 [M::bam2fq_mainloop] processed 82002 reads
 ```
 
-With the last command, we have split the bam file resulting from alignment of both Reverse and Forward reads into two files: the program claims
-we have obtained 82002 reads. Let's do a brief check. We count the lines of the files produced:
+With the last command, we have split the bam file resulting from alignment of both Reverse and Forward reads into two files: the program claims we have obtained 82002 reads. Let's do a brief check. We count the lines of the files produced:
 
 ```
 zcat seq_filtered.final_1.fastq.gz | wc
@@ -413,48 +401,24 @@ zcat seq_filtered.final_2.fastq.gz | wc
 The result is in both cases 164004: as one read occupies EXACTLY 4 ROWS, the numbers add up.
 
 # Hands-on n.2 - Taxonomic profiling: quantifying which species and taxa are there
-The following part covers the topic that is mostly what people often refer to when tehy name "metagenomics".
-In reality, this step covers two highly important but distinct aspects of the characterization of a given microbial community: 
+This part is normally considered as one, but it covers two highly important but distinct aspects of the characterization of a given microbial community: 
 1) Detecting and naming species that are found in the community ("which species are there")
 2) Quantifying them (i.e. in relative terms).
 
-Why relative terms?
-Taxonomic profiling is, by definition, bound to assign a quantity to a given taxon on the basis of what has been sequenced. 
-However, what has been sequenced is, by definition, the result of a set of biases that will impact the final results, in short:
+We will use two different methodologies.
 
-1) The total number of clean reads obtained
-2) The general structure of the community.
+The first, implemented in the software MetaPhAn, is *marker-based*. It works by assessing whether metagenomic reads map, by the entirety of their length, on marker-genes: these marker genes are recorded in pre-constituted databases, and are species-specific. A species presence and abundance is therefore quantified by the number of marker genes that are found in the community of interest (after a step of normalization accounting the lenght of the genome of the species in question and the total number of species-specific marker genes that are available).
 
-Why the general structure of the community? Because metagenomic data suffer from a mathematical problem called "compositionality", meaning that
-more abundant species tend, by the chemistry of the sequencing machinery, to produce more DNA, and consequently to attract more nucleotide and more
-sequencing signallings in the sequencing phase. The result? The species that are more abundant tend to be sequenced more, and result to be more abundant that
-they actually are. But they were already more abundant! Therefore sequencing tend to exacerbate the community structure, with more abundant species being
-exaggerately more abundant, and lowly abundant species being found often at negligible abundances.
+The second approach, implemented in the software Kraken, is *k-mer-based*. It works by assessing the presence of k-mers both in the query reads and in a database of genomes which taxonomy is known. K-mers are combinations of nucleotides strings of lenght 7, 13, 21 or a variable lenght. The software database is constituted in such a way that each k-mer points directly to a genome in the taxonomic tree: therefore a read is decomposed into k-mers, and the read k-mers are searched directly in this database.
 
-To perform taxonomic profiling, we will use two different methodologies.
-The first, implemented in the software MetaPhAn, is called marker-based. It works by assessing whether metagenomic reads map, by the entirety of their length, on 
-marker-genes: these marker genes are recorded in pre-constituted databases, and are species-specific. A species presence and abundance is therefore quantified by
-the number of marker genes that are found in the community of interest (after a step of normalization accounting the lenght of the genome of the species in question and 
-the total number of species-specific marker genes that are available). 
+Which approach is best? The two display trade-offs and peculiarities.
 
-The second approach, implemented in the software Kraken, is called k-mer-based. It works by assessing the presence of k-mers both in the query reads and in a database of genomes
-which taxonomy is known. K-mers are combinations of nucleotides strings of lenght 7, 13, 21 or a variable lenght. The software database is constituted in such a way that each k-mer 
-points directly to a genome in the taxonomic tree: therefore a read is decomposed into k-mers, and the read k-mers are searched directly in this database.
-
-Which approach is the best?
-The approaches display trade-offs and peculiarities.
-
-1) During database creation, MetaPhlAn must align each gene against each other, to ensure the marker-specifity. This massive computation cannot be performed by an individual user,
-therefore MetaPhlAn is restricted to the environments that are fully covered by its proprietary database. For human and mice it is considered slightly more accurate.
+1) During database creation, MetaPhlAn must align each gene against each other, to ensure the marker-specifity. This massive computation cannot be performed by an individual user, therefore MetaPhlAn is restricted to the environments that are fully covered by its proprietary database. For human and mice it is considered slightly more accurate.
 2) Kraken databases can be easily created for almost any environment, which make it the standard choice for environmental and non-common metagenomes.
-3) MetaPhlAn integrates its own taxonomy, while Kraken must be coupled with some pre-existing taxonomy (either pure NCBI of GTDB). While there is no strict "better" in these two approaches,
-they remain different: MetaPhlAn has produced important advacements in amending NCBI taxonomy for this reason. Kraken is obliged to adhere to NCBI taxonomy, but remains the sole
-transportable to fully uncharacterized communities.
-4) To date, MetaPhlAn and Kraken database are similar in disk occupancy and consider a similar number of species (~120000). However MetaPhlAn stores information for 4M genomes, while Kraken stores in the typical use-case 1 genome per species. Therefore in the future MetaPhlAn risk to be inapplicable in environmental settings, while Kraken risks not be scalable to a relevant
-number of species.
+3) MetaPhlAn integrates its own taxonomy, while Kraken must be coupled with some pre-existing taxonomy (either pure NCBI of GTDB). While there is no strict "better" in these two approaches, they remain different: MetaPhlAn has produced important advacements in amending NCBI taxonomy for this reason. Kraken is obliged to adhere to NCBI taxonomy, but remains the sole transportable to fully uncharacterized communities.
+4) To date, MetaPhlAn and Kraken database are similar in disk occupancy and consider a similar number of species (~120000). However MetaPhlAn stores information for 4M genomes, while Kraken stores in the typical use-case 1 genome per species. Therefore in the future MetaPhlAn risk to be inapplicable in environmental settings, while Kraken risks not be scalable to a relevant number of species.
 
-Conclusion? By most viewpoints, they leverage the same genomic databases and deply a similar species diversity, so to some extent they result comparable. It is recommandable to know both 
-and apply the most suitable on a per-case basis.
+Conclusion? By most viewpoints, they leverage the same genomic databases and deply a similar species diversity, so to some extent they result comparable. It is recommandable to know both and apply the most suitable on a per-case basis.
 
 ## Step n.1: Perform MetaPhlAn profiling
 
@@ -469,8 +433,7 @@ conda activate tax_profiling
 
 ## **Step n.2: download metagenomic samples**
 
-We will perform the taxonomic profiling of five samples from human-associated microbiome. Spefically, we will analyzed
-microbiomes from:
+We will perform the taxonomic profiling of five samples from human-associated microbiome. Spefically, we will analyzed microbiomes from:
 
 1) stool
 2) buccal mucosa
@@ -531,12 +494,10 @@ positional arguments:
 [...]
 
 ```
-MetaPhlAn can take multiple file types as input, and outputs different files. In short, when run on metagenomic reads,
-the procedure entails:
+MetaPhlAn can take multiple file types as input, and outputs different files. In short, when run on metagenomic reads, the procedure entails:
 
 1) mapping reads (using Bowtie2) against the marker gene database
-2) calculus of average coverage per species
-estimated by the coverage on the marker genes
+2) calculus of average coverage per species estimated by the coverage on the marker genes
 3) pooling of the coverages and estimation of species relative abundance
 4) grouping of the taxonomic level, starting from species-level, up to the kingdom
 
@@ -583,14 +544,12 @@ Bracken is, in words, the piece of software designed to address this issue: Brac
 1) the number of unique k-mers (which is a charcteristic of the database)
 2) the number of uniquely assigned reads.
 
-Clearly, the ** random ** distribution of reads between the two species is not derived from having the same number of reads among the two, but having the same proportion of
+Clearly, the ** random ** distribution of reads between the two species is not derived from having the same number of reads among the two, but having the same proportion of:
 Number of reads / Number of unique K-mers
 
-Or, in other words, species that have very little unique k-mers in their genomes, are expected to show a greater abundance if we assumed that the number of uniquely assigned reads
-is the same. In short, Bracken redistribute ambiguous reads based the probability of observing the observed number of non-ambiguous calls, considering the number of unique k-mers for
-the species.
+Or, in other words, species that have very little unique k-mers in their genomes, are expected to show a greater abundance if we assumed that the number of uniquely assigned reads is the same. In short, Bracken redistribute ambiguous reads based the probability of observing the observed number of non-ambiguous calls, considering the number of unique k-mers for the species.
 
-Albeit pratically this methodology works, and is the de-facto standard for non-humann communities, precautions must be taken when extensively running Bracken:
+Albeit pratically this methodology works, and is the de-facto standard for non-human communities, precautions must be taken when extensively running Bracken:
 
 1) The resulting number of species with standard parameters is notoriously too-high (based on consideration on human being, in which we know precisely what to expect)
 2) In environmental samples, the Bracken rate of False Positives may be perceived as sensitivity (since finding a lot of species in an environment which should have a lot of species seems like the right thing: in reality the great majority of species found in such environment remains uncharacterized also by Kraken).
@@ -762,7 +721,7 @@ press ctrl + c, type y and exit jupyter
 The next tool we are going apply represents one unique alternative to perform genetic/functional analysis in microbiome project. As a general concept, HUMAnN 4 solves a easy-to-understand problem, i.e.: it assigns metagenomic reads to functions in UniRef90.
 
 Practically, there are two things to consider. 
-First, it is one of a kind, in the sense that just a few other, less popular tools perform a similar task, while on the contrary a good number of tools exists that quantify or predict genes starting from reconstructed genomes. HUMANnN quantifies gene abundances starting from reads, which makes it sort of an unicum.
+First, it is one of a kind, in the sense that just a few other, less popular tools perform a similar task, while on the contrary a good number of tools exists that quantify or predict genes starting from reconstructed genomes. HUMAnN quantifies gene abundances starting from reads, which makes it sort of an unicum.
 
 Second, HUMAnN employs an algoritmical trick to make this computation faster and more efficient. In short, mapping raw reads against the whole UniRef90 is an expensive task. HUMAnN thus relies on the following pipeline:
 
@@ -805,7 +764,7 @@ humann -h
 wget ftp://ftp.sra.ebi.ac.uk/vol1/fastq/SRR154/096/SRR15408396/SRR15408396.fastq.gz
 ```
 
-## Step n.4: RUN humann
+## Step n.4: RUN HUMAnN
 ```
 s="SRR15408396"
 metaphlan_options="--bowtie2db /data/metaphlan_databases/mpa_vOct22_CHOCOPhlAnSGB_202403 --index mpa_vOct22_CHOCOPhlAnSGB_202403 -t rel_ab_w_read_stats"
