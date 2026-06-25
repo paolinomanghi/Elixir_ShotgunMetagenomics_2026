@@ -50,27 +50,26 @@ Briefly, Anaconda is a widely used open-source platform and distribution for the
 
 Why it’s used: Instead of downloading thousands of data analysis tools one by one, users install Anaconda, which comes pre-loaded with popular libraries (like NumPy and Pandas) and tools (like Jupyter Notebooks).
 
-First, when you log into the server, you are already in a Conda Environment:
+First, when you log into the server, you should see something like:
 ```
 Last login: Tue Jun 16 10:17:30 2026 from 151.38.154.153
-(base) cdonati@mbc1:~$
+cdonati@mbc1:~$
 ```
 
-You see the *(base)* flag? It means that the system recognize your conda ecosystem.
-You can deactivate this:
-
-Type:
-```
-conda deactivate
-```
-
-Naturally you may have different anaconda platforms. For instance, we have set up an independent anaconda environment:
+To Activate Anaconda (specifically, to enter into the **Base environment**), you do:
 ```
 source /data/anaconda2026/.conda
 ```
 
-Now, see the (base) string in the bottom-left corner of the screen ?
-Type:
+You should now see something like:
+```
+cdonati@mbc1:/data$ source anaconda2026/.conda
+(base) cdonati@mbc1:/data$ 
+(base) cdonati@mbc1:/data$ 
+```
+
+You see the *(base)* flag? It means that the system recognize your conda ecosystem.
+Now type:
 
 ```
 which python
@@ -101,6 +100,7 @@ assembly                 /data/anaconda2026/envs/assembly
 genome_annotation        /data/anaconda2026/envs/genome_annotation
 humann4                  /data/anaconda2026/envs/humann4
 preprocessing            /data/anaconda2026/envs/preprocessing
+qiime2-amplicon-2024.10     /data/anaconda2026/envs/qiime2-amplicon-2024.10
 r_notebooks              /data/anaconda2026/envs/r_notebooks
 tax_profiling            /data/anaconda2026/envs/tax_profiling
 ```
@@ -218,18 +218,52 @@ bakta_db download --output /data/bakta_database/ --type light
 ```
 
 ## HOW DOES THIS WORK PRACTICALLY?
-To understand how this works, Type:
+To understand how this works, try to do the following.
+Type
+```
+metaphlan -h
+```
+
+After a few seconds, you'll see something like:
+```
+(base) cdonati@mbc1:/data$ metaphlan --version
+Command 'metaphlan' not found, but can be installed with:
+apt install metaphlan2
+Please ask your administrator.
+```
+
+Now try to do the following:
 ```
 conda activate tax_profiling
 ```
 
 See the (tax_profiling) string in the bottom-left corner?
-Now type:
-
+Now type again:
 ```
-which metaphlan; which kraken; which bracken
+metaphlan --version
+```
+
+You should see something like:
+```
+(tax_profiling) cdonati@mbc1:/data$ metaphlan --version
+MetaPhlAn version 4.2.4 (21 Oct 2025)
+No complete MetaPhlAn Bowtie2 database found
+(tax_profiling) cdonati@mbc1:/data$
+```
+
+This means that MetaPhlAn software has been found!
+Note that, if you do:
+```
 conda deactivate
-which metaphlan; which kraken; which bracken
+metaphlan --version
+```
+
+You obtain again:
+```
+(base) cdonati@mbc1:/data$ metaphlan --version
+Command 'metaphlan' not found, but can be installed with:
+apt install metaphlan2
+Please ask your administrator.
 ```
 
 As you can see, the programs inside each environment are protected, meaning that they are visible only in that environment to not interfere with other installations.
@@ -849,6 +883,17 @@ You can have a look at this table:
 (humann4) cdonati@mbc1:/data/cdonati/functional_profiling# less -S merged_pathabundance.tsv
 ```
 Press q
+
+## Where do HUMAnN 4 pathways come from?
+HUMAnN pathways are MetaCyc pathways.
+For instance, suppose we are interested in the urea cycle.
+In the *pathabundance* table, you find that the pathway of the urea cycle is encoded as *PWY-4984*.
+
+Visit https://metacyc.org/
+Type PWY-4984 in the main search window.
+
+Press the little magnifying glass.
+Now, select the *all compunds, enzymes* modality.
 
 
 # Hands-on n.5 - Metagenome assembly and binning
